@@ -153,17 +153,22 @@ def chat_system():
         st.session_state.chat_log.append({"name": ASSISTANT_NAME, "msg": assistant_msg})
         st.session_state.prompt_chat_log = st.session_state.prompt_chat_log + assistant_msg + "\n" + "被説得者A："
 
-        response = response_chatgpt(st.session_state.persuadeeprompt1 + st.session_state.prompt_chat_log)
-        assistant2_msg = response.choices[0].message.content
-
         # 被説得エージェントのメッセージを表示
+        response = response_chatgpt(st.session_state.persuadeeprompt1 + st.session_state.prompt_chat_log)
         with st.chat_message(ASSISTANT_NAME2):
-            st.write(assistant2_msg)
+            assistant2_msg = ""
+            assistant_response_area = st.empty()
+            for chunk in response:
+                if chunk.choices[0].finish_reason is not None:
+                    break
+                # 回答を逐次表示
+                assistant2_msg += chunk.choices[0].delta.content
+                assistant_response_area.write(assistant2_msg)
         st.session_state.chat_log.append({"name": ASSISTANT_NAME2, "msg": assistant2_msg})
         st.session_state.prompt_chat_log = st.session_state.prompt_chat_log + assistant2_msg + "\n" + "被説得者B："
 
     # turnが6以上の場合は終了
-    if st.session_state.turn >= 6:
+    if st.session_state.turn >= 3:
         st.title("説得対話用のチャットシステム")
         for chat in st.session_state.chat_log:
             with st.chat_message(chat["name"]):
@@ -174,7 +179,6 @@ def chat_system():
             st.session_state.page_control = 4
             st.rerun()
     else:
-
     #ユーザの入力
         if user_msg := st.chat_input("ここにメッセージを入力"):
             st.title("説得対話用のチャットシステム")
@@ -190,7 +194,7 @@ def chat_system():
             st.session_state.prompt_chat_log = st.session_state.prompt_chat_log+ user_msg + "\n" + "説得者："
 
             # 説得者の発話を表示
-            if st.session_state.turn == 5:
+            if st.session_state.turn >= 2:
                 response = response_chatgpt("# タスク説明\n説得者が日説得者を説得する対話を終了する発話を生成してください．\n\n# 注意事項\n「説得者：」に続く部分のみを出力して下さい．\n出力に「説得者：」を含めないで下さい．\nすべて日本語で出力して下さい．\n\n#対話履歴\n" + st.session_state.prompt_chat_log)
             else:
                 response = response_chatgpt(st.session_state.persuaderprompt + st.session_state.prompt_chat_log)
@@ -212,26 +216,43 @@ def chat_system():
             else:
                 # 被説得者が説得される発話を生成
                 response = response_chatgpt(st.session_state.persuadeeprompt2 + st.session_state.prompt_chat_log)
-            assistant2_msg = response.choices[0].message.content
-            # 被説得エージェントのメッセージを表示
-            with st.chat_message(ASSISTANT_NAME2):
-                st.write(assistant2_msg)
-            st.session_state.chat_log.append({"name": ASSISTANT_NAME2, "msg": assistant2_msg})
-            st.session_state.prompt_chat_log = st.session_state.prompt_chat_log + assistant2_msg + "\n" + "被説得者B："
+            if st.session_state.turn >= 2:
+                st.write("5ターン経過したので、説得対話は終了しました。")
+                st.write("下のボタンをクリックして、発話評価に進んでください。")
+                if st.button("評価を開始"):
+                    st.session_state.page_control = 4
+                    st.rerun()
+            else:
+                # 被説得エージェントのメッセージを表示
+                with st.chat_message(ASSISTANT_NAME2):
+                    assistant2_msg = ""
+                    assistant_response_area = st.empty()
+                    for chunk in response:
+                        if chunk.choices[0].finish_reason is not None:
+                            break
+                        # 回答を逐次表示
+                        assistant2_msg += chunk.choices[0].delta.content
+                        assistant_response_area.write(assistant2_msg)
+                st.session_state.chat_log.append({"name": ASSISTANT_NAME2, "msg": assistant2_msg})
+                st.session_state.prompt_chat_log = st.session_state.prompt_chat_log + assistant2_msg + "\n" + "被説得者B："
             st.session_state.turn += 1
 
 # 発話評価の関数
 def utterance_eval():
     st.title("発話ごとの評価")
-    for chat in st.session_state.chat_log:
+    for i, chat in enumerate(st.session_state.chat_log[1:], 1):
         # 発話を表示して，アシスタントなら「説得力」と「自然さ」を5段階で評価，ユーザなら「説得受容度」とを5段階で評価
         if chat["name"] == ASSISTANT_NAME:
-            st.write("説得者：" + chat["msg"])
-            chat["persuasive"] = st.radio("説得力", [5, 4, 3, 2, 1], index=2)
-            chat["natural"] = st.radio("自然さ", [5, 4, 3, 2, 1], index=2)
-        else:
+            st.write("説得エージェント：" + chat["msg"])
+            chat["persuasive"] = st.radio(f"発話{i}の説得力", [5, 4, 3, 2, 1], index=2)
+            chat["natural"] = st.radio(f"発話{i}の自然さ", [5, 4, 3, 2, 1], index=2)
+        elif chat["name"] == ASSISTANT_NAME2:
+            st.write("被説得エージェント：" + chat["msg"])
+            chat["persuasive"] = st.radio(f"発話{i}の説得受容度", [5, 4, 3, 2, 1], index=2)
+            chat["natural"] = st.radio(f"発話{i}の自然さ", [5, 4, 3, 2, 1], index=2)
+        elif chat["name"] == USER_NAME:
             st.write("ユーザ：" + chat["msg"])
-            chat["persuasive"] = st.radio("説得受容度", [5, 4, 3, 2, 1], index=2)
+            chat["persuasive"] = st.radio(f"発話{i}の説得受容度", [5, 4, 3, 2, 1], index=2)
 
     if st.button("対話全体の評価に進む"):
         st.session_state.page_control = 5
