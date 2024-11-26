@@ -80,16 +80,22 @@ def response_chatgpt(prompt: str):
 def pre_survey():
     st.title("生活習慣に関するアンケート")
     st.write(
-        "運動、掃除、食事、睡眠の４つの項目について、以下の５段階の選択肢から選んでください。"
+        "運動、掃除、食事、睡眠の4つの項目について、次の質問に答えてください。"
+    )
+    st.write(
+        "日常生活において健康を意識して行っている"
+    )
+    st.write(
+        "5：同意できる, 4：やや同意できる, 3：どちらでもない, 2：やや同意できない, 1：同意できない"
     )
     # 運動
-    st.session_state.exercise = st.radio("生活における運動の状況", [5, 4, 3, 2, 1], index=2)
+    st.session_state.exercise = st.radio("運動", [5, 4, 3, 2, 1], index=2)
     # 掃除
-    st.session_state.cleaning = st.radio("生活における掃除の状況", [5, 4, 3, 2, 1], index=2)
+    st.session_state.cleaning = st.radio("掃除", [5, 4, 3, 2, 1], index=2)
     # 食事
-    st.session_state.meal = st.radio("生活における食事の状況", [5, 4, 3, 2, 1], index=2)
+    st.session_state.meal = st.radio("食事", [5, 4, 3, 2, 1], index=2)
     # 睡眠
-    st.session_state.sleep = st.radio("生活における睡眠の状況", [5, 4, 3, 2, 1], index=2)
+    st.session_state.sleep = st.radio("睡眠", [5, 4, 3, 2, 1], index=2)
     # 提出ボタン
     if st.button("提出"):
         st.session_state.page_control = 1
@@ -108,7 +114,7 @@ def deside_topic():
     if st.session_state.sleep <= 3:
         persuade_list.append("十分な睡眠")
     if persuade_list == []:
-        st.write("今回は説得対話を行うトピックがありません。")
+        st.write("今回は説得対話を行えるトピックがありません。")
         st.stop()
     else :
         st.write("以下の中から、説得対話のトピックを選んでください。")
@@ -244,18 +250,38 @@ def chat_system():
 # 発話評価の関数
 def utterance_eval():
     st.title("発話ごとの評価")
+    st.write(
+        "説得エージェントとあなたのそれぞれの発話について、次の質問に答えてください。"
+    )
+    st.write(
+        "説得エージェントの発話は「説得力」と「自然さ」がある"
+    )
+    st.write(
+        "被説得エージェントの発話はあなたから見て説得を受け入れていて「自然さ」がある"
+    )
+    st.write(
+        "あなたのの発話は説得を受け入れている"
+    )
+    st.write(
+        "5：同意できる, 4：やや同意できる, 3：どちらでもない, 2：やや同意できない, 1：同意できない"
+    )
     for i, chat in enumerate(st.session_state.chat_log[1:], 1):
-        # 発話を表示して，アシスタントなら「説得力」と「自然さ」を5段階で評価，ユーザなら「説得受容度」とを5段階で評価
         if chat["name"] == ASSISTANT_NAME:
-            st.write("説得エージェント：" + chat["msg"])
+            st.write(f"発話{i}")
+            st.write("説得エージェントの発話")
+            st.write("「" + chat["msg"] + "」")
             chat["persuasive"] = st.radio(f"発話{i}の説得力", [5, 4, 3, 2, 1], index=2)
             chat["natural"] = st.radio(f"発話{i}の自然さ", [5, 4, 3, 2, 1], index=2)
         elif chat["name"] == ASSISTANT_NAME2:
-            st.write("被説得エージェント：" + chat["msg"])
+            st.write(f"発話{i}")
+            st.write("被説得エージェントの発話")
+            st.write("「" + chat["msg"] + "」")
             chat["persuasive"] = st.radio(f"発話{i}の説得受容度", [5, 4, 3, 2, 1], index=2)
             chat["natural"] = st.radio(f"発話{i}の自然さ", [5, 4, 3, 2, 1], index=2)
         elif chat["name"] == USER_NAME:
-            st.write("ユーザ：" + chat["msg"])
+            st.write(f"発話{i}")
+            st.write("あなたの発話" + chat["msg"])
+            st.write("「" + chat["msg"] + "」")
             chat["persuasive"] = st.radio(f"発話{i}の説得受容度", [5, 4, 3, 2, 1], index=2)
 
     if st.button("対話全体の評価に進む"):
@@ -266,12 +292,18 @@ def utterance_eval():
 def dialogue_eval():
     st.title("対話全体の評価")
     st.write(
-        "説得対話全体を考慮した説得エージェントの「説得力」と「自然さ」を評価してください。"
+        "今回の対話全体を考慮して説得エージェントについて、次の質問に答えてください。"
+    )
+    st.write(
+        "この説得エージェントは「説得力」と「自然さ」がある"
+    )
+    st.write(
+        "5：同意できる, 4：やや同意できる, 3：どちらでもない, 2：やや同意できない, 1：同意できない"
     )
     # 説得力
-    st.session_state.persuasive = st.radio("説得対話全体を考慮した説得エージェントの「説得力」", [5, 4, 3, 2, 1], index=2)
+    st.session_state.persuasive = st.radio("説得力", [5, 4, 3, 2, 1], index=2)
     # 自然さ
-    st.session_state.natural = st.radio("説得対話全体を考慮した説得エージェントの「自然さ」", [5, 4, 3, 2, 1], index=2)
+    st.session_state.natural = st.radio("自然さ", [5, 4, 3, 2, 1], index=2)
     # 終了ボタン
     if st.button("評価を終了"):
         st.stop()
