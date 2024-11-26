@@ -15,6 +15,7 @@ ASSISTANT_NAME2 = "assistant2"
 PERSUADER_PROMPTFILE = "prompts/persuaderprompt2.txt"
 PERSUADEE_PROMPTFILE1 = "prompts/persuadeeprompt1.txt"
 PERSUADEE_PROMPTFILE2 = "prompts/persuadeeprompt2.txt"
+p_turn = 5
 
 # ページ遷移のフラグの初期化
 if "page_control" not in st.session_state:
@@ -53,6 +54,9 @@ if "persuaderprompt" not in st.session_state:
 if "persuadeeprompt1" not in st.session_state:
     with open(PERSUADEE_PROMPTFILE1, "r") as f:
         st.session_state.persuadeeprompt1 = f.read()
+if "persuadeeprompt2" not in st.session_state:
+    with open(PERSUADEE_PROMPTFILE2, "r") as f:
+        st.session_state.persuadeeprompt2 = f.read()
 
 # プロンプト用チャットログの初期化
 if "prompt_chat_log" not in st.session_state:
@@ -168,7 +172,7 @@ def chat_system():
         st.session_state.prompt_chat_log = st.session_state.prompt_chat_log + assistant2_msg + "\n" + "被説得者B："
 
     # turnが6以上の場合は終了
-    if st.session_state.turn >= 3:
+    if st.session_state.turn > p_turn:
         st.title("説得対話用のチャットシステム")
         for chat in st.session_state.chat_log:
             with st.chat_message(chat["name"]):
@@ -194,7 +198,7 @@ def chat_system():
             st.session_state.prompt_chat_log = st.session_state.prompt_chat_log+ user_msg + "\n" + "説得者："
 
             # 説得者の発話を表示
-            if st.session_state.turn >= 2:
+            if st.session_state.turn >= p_turn:
                 response = response_chatgpt("# タスク説明\n説得者が日説得者を説得する対話を終了する発話を生成してください．\n\n# 注意事項\n「説得者：」に続く部分のみを出力して下さい．\n出力に「説得者：」を含めないで下さい．\nすべて日本語で出力して下さい．\n\n#対話履歴\n" + st.session_state.prompt_chat_log)
             else:
                 response = response_chatgpt(st.session_state.persuaderprompt + st.session_state.prompt_chat_log)
@@ -210,13 +214,13 @@ def chat_system():
             st.session_state.chat_log.append({"name": ASSISTANT_NAME, "msg": assistant_msg})
             st.session_state.prompt_chat_log = st.session_state.prompt_chat_log + assistant_msg + "\n" + "被説得者A："
 
-            if st.session_state.turn <= 2:
+            if st.session_state.turn <= 1:
                 # 被説得者が反論する発話を生成
                 response = response_chatgpt(st.session_state.persuadeeprompt1 + st.session_state.prompt_chat_log)
             else:
                 # 被説得者が説得される発話を生成
                 response = response_chatgpt(st.session_state.persuadeeprompt2 + st.session_state.prompt_chat_log)
-            if st.session_state.turn >= 2:
+            if st.session_state.turn >= p_turn:
                 st.write("5ターン経過したので、説得対話は終了しました。")
                 st.write("下のボタンをクリックして、発話評価に進んでください。")
                 if st.button("評価を開始"):
