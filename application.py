@@ -20,8 +20,6 @@ PERSUADER_PROMPTFILE = "prompts/persuaderprompt2.txt"
 PERSUADEE_PROMPTFILE1 = "prompts/persuadeeprompt1.txt"
 PERSUADEE_PROMPTFILE2 = "prompts/persuadeeprompt2.txt"
 p_turn = 5
-wait_time = 15
-dt_now = datetime.datetime.now()
 
 # 画像読み込み
 user_icon = np.array(Image.open("icons/user.png"))
@@ -37,18 +35,22 @@ if "topic" not in st.session_state:
     st.session_state.topic = ""
 
 # 事前アンケートの初期化
+if "gender" not in st.session_state:
+    st.session_state.gender = ""
+if "age" not in st.session_state:
+    st.session_state.age = ""
 if "exercise1" not in st.session_state:
-    st.session_state.exercise1 = 0
+    st.session_state.exercise1 = ""
 if "exercise2" not in st.session_state:
-    st.session_state.exercise2 = 0
+    st.session_state.exercise2 = ""
 if "cleaning" not in st.session_state:
-    st.session_state.cleaning = 0
+    st.session_state.cleaning = ""
 if "meal1" not in st.session_state:
-    st.session_state.meal1 = 0
+    st.session_state.meal1 = ""
 if "meal2" not in st.session_state:
-    st.session_state.meal2 = 0
+    st.session_state.meal2 = ""
 if "sleep" not in st.session_state:
-    st.session_state.sleep = 0
+    st.session_state.sleep = ""
 
 # 事後アンケートの初期化
 if "exercise1_eval" not in st.session_state:
@@ -109,6 +111,14 @@ if "input_message" not in st.session_state:
 if "is_persuadee_speak" not in st.session_state:
     st.session_state.is_persuadee_speak = True
 
+# 日時の初期化
+if "dt_now" not in st.session_state:
+    st.session_state.dt_now = ""
+
+# 出力ファイルの初期化
+if "text_data" not in st.session_state:
+    st.session_state.text_data = ""
+
 # ChatGPTによるレスポンス取得の関数
 def response_chatgpt(prompt: str):
     response = client.chat.completions.create(
@@ -124,6 +134,17 @@ def pre_survey():
     st.title("生活習慣に関するアンケート")
     st.write(
         "以下の生活習慣に関するアンケート全てに答えてください。"
+    )
+    st.session_state.gender = st.radio(
+        label="あなたの性別を教えてください", 
+        options=["男性", "女性", "その他"], 
+        index=0
+        )
+    st.session_state.age = st.slider(
+        label="あなたの年齢を教えてください", 
+        min_value=10, 
+        max_value=80, 
+        value=1
     )
     st.session_state.exercise1 = st.radio(
         label="普段運動をどれくらいの頻度で行っていますか？（運動とはウォーキングやストレッチ、スポーツなどを含みます）", 
@@ -248,7 +269,7 @@ def chat_system():
         st.session_state.prompt_chat_log = st.session_state.prompt_chat_log + assistant_msg + "\n" + "被説得者A："
         st.chat_input("説得文を読んでください", disabled=True)
         st.session_state.is_chat_input_disabled = False
-        time.sleep(wait_time)
+        time.sleep(len(assistant_msg) * 0.1)
         st.rerun()
 
     # turnが6以上の場合は終了
@@ -332,7 +353,7 @@ def chat_system():
                 st.session_state.turn += 1
                 st.session_state.is_chat_input_disabled = False
                 st.session_state.input_message = "ここにメッセージを入力"
-                time.sleep(wait_time)
+                time.sleep(len(assistant_msg) * 0.1)
                 st.rerun()
 
 # 発話評価の関数
@@ -412,25 +433,33 @@ def dialogue_eval():
         specific_eval = f"睡眠時間：{st.session_state.sleep_eval}"
     # 終了ボタン
     if st.button("評価を終了"):
-        now = dt_now.isoformat()
-        with open(f"data/{now}.txt", "w") as f:
-            f.write(f"date : {now}\n")
-            f.write(f"topic : {st.session_state.topic}\n")
-            f.write(f"{st.session_state.pre_survey}\n")
-            for chat in st.session_state.chat_log[1:]:
-                f.write(f"{chat['name']} : {chat['msg']}\n")
-                f.write(f"persuasive : {chat['persuasive']}\n")
-                if chat["name"] == ASSISTANT_NAME:
-                    f.write(f"natural : {chat['natural']}\n")
-            f.write(f"all_persuasive : {st.session_state.persuasive}\n")
-            f.write(f"all_natural : {st.session_state.natural}\n")
-            f.write(f"{specific_eval}\n")
+        st.session_state.dt_now = datetime.datetime.now().isoformat()
+        st.session_state.text_data += f"date : {st.session_state.dt_now}\n"
+        st.session_state.text_data += f"gender : {st.session_state.gender}\n"
+        st.session_state.text_data += f"age : {st.session_state.age}\n"
+        st.session_state.text_data += f"topic : {st.session_state.topic}\n"
+        st.session_state.text_data += f"{st.session_state.pre_survey}\n"
+        for chat in st.session_state.chat_log[1:]:
+            st.session_state.text_data += f"{chat['name']} : {chat['msg']}\n"
+            st.session_state.text_data += f"persuasive : {chat['persuasive']}\n"
+            if chat["name"] == ASSISTANT_NAME:
+                st.session_state.text_data += f"natural : {chat['natural']}\n"
+        st.session_state.text_data += f"all_persuasive : {st.session_state.persuasive}\n"
+        st.session_state.text_data += f"all_natural : {st.session_state.natural}\n"
+        st.session_state.text_data += f"{specific_eval}\n"
+        with open(f"data/{st.session_state.dt_now}.txt", "w") as f:
+            f.write(st.session_state.text_data)
         st.session_state.page_control = 6
         st.rerun()
 
 def finish():
     st.title("評価が完了しました。")
     st.write("ありがとうございました。")
+    st.download_button(
+    "出力ファイルのダウンロード", 
+    st.session_state.text_data,
+    file_name=f"{st.session_state.dt_now}.txt",
+    )
 
 #ページの管理
 if st.session_state.page_control == 0:
