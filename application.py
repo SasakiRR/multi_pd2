@@ -1,4 +1,8 @@
 import os
+import time
+import datetime
+import numpy as np
+from PIL import Image
 import streamlit as st
 from openai import OpenAI
 
@@ -16,6 +20,8 @@ PERSUADER_PROMPTFILE = "prompts/persuaderprompt2.txt"
 PERSUADEE_PROMPTFILE1 = "prompts/persuadeeprompt1.txt"
 PERSUADEE_PROMPTFILE2 = "prompts/persuadeeprompt2.txt"
 p_turn = 5
+wait_time = 15
+dt_now = datetime.datetime.now()
 
 # ページ遷移のフラグの初期化
 if "page_control" not in st.session_state:
