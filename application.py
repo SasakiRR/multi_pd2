@@ -193,7 +193,7 @@ def deside_topic():
         persuade_list.append("健康的な食事")
     elif int(st.session_state.meal1[0]) <= 3:
         persuade_list.append("規則的な食事")
-    else:
+    elif int(st.session_state.meal2[0]) <= 3:
         persuade_list.append("栄養バランスの取れた食事")
     if int(st.session_state.sleep[0]) <= 3:
         persuade_list.append("十分な睡眠")
