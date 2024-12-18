@@ -372,6 +372,7 @@ def utterance_eval():
             st.write(f"被説得エージェントの発話{i}")
             st.write("「" + chat["msg"] + "」")
             chat["persuasive"] = st.radio(f"被説得エージェントの発話{i}は説得を受け入れている", ["5：同意できる", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない"], index=2)
+            chat["natural"] = st.radio(f"被説得エージェントの発話{i}は自然さがある", ["5：同意できる", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない"], index=2)
         else:
             st.write(f"あなたの発話{i}")
             st.write("「" + chat["msg"] + "」")
@@ -442,7 +443,7 @@ def dialogue_eval():
         for chat in st.session_state.chat_log[1:]:
             st.session_state.text_data += f"{chat['name']} : {chat['msg']}\n"
             st.session_state.text_data += f"persuasive : {chat['persuasive']}\n"
-            if chat["name"] == ASSISTANT_NAME:
+            if chat["name"] != USER_NAME:
                 st.session_state.text_data += f"natural : {chat['natural']}\n"
         st.session_state.text_data += f"all_persuasive : {st.session_state.persuasive}\n"
         st.session_state.text_data += f"all_natural : {st.session_state.natural}\n"
