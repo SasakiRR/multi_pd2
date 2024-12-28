@@ -1,5 +1,6 @@
 import os
 import time
+import pytz
 import datetime
 import numpy as np
 from PIL import Image
@@ -269,7 +270,7 @@ def chat_system():
         st.session_state.prompt_chat_log = st.session_state.prompt_chat_log + assistant_msg + "\n" + "被説得者A："
         st.chat_input("説得文を読んでください", disabled=True)
         st.session_state.is_chat_input_disabled = False
-        time.sleep(len(assistant_msg) * 0.1)
+        time.sleep(len(assistant_msg) * 0.1 + 5)
         st.rerun()
 
     # turnが6以上の場合は終了
@@ -353,7 +354,7 @@ def chat_system():
                 st.session_state.turn += 1
                 st.session_state.is_chat_input_disabled = False
                 st.session_state.input_message = "ここにメッセージを入力"
-                time.sleep(len(assistant_msg) * 0.1)
+                time.sleep(len(assistant_msg) * 0.1 + 5)
                 st.rerun()
 
 # 発話評価の関数
@@ -366,17 +367,17 @@ def utterance_eval():
         if chat["name"] == ASSISTANT_NAME:
             st.write(f"説得エージェントの発話{i}")
             st.write("「" + chat["msg"] + "」")
-            chat["persuasive"] = st.radio(f"説得エージェントの発話{i}は説得力がある", ["5：同意できる", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない"], index=2)
-            chat["natural"] = st.radio(f"説得エージェントの発話{i}は自然さがある", ["5：同意できる", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない"], index=2)
+            chat["persuasive"] = st.radio(f"説得エージェントの発話{i}は説得力がある", ["5：同意できる（説得力がある）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（説得力がない）"], index=2)
+            chat["natural"] = st.radio(f"説得エージェントの発話{i}は応答として自然である", ["5：同意できる（自然である）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（不自然である）"], index=2)
         elif chat["name"] == ASSISTANT_NAME2:
             st.write(f"被説得エージェントの発話{i}")
             st.write("「" + chat["msg"] + "」")
-            chat["persuasive"] = st.radio(f"被説得エージェントの発話{i}は説得を受け入れている", ["5：同意できる", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない"], index=2)
-            chat["natural"] = st.radio(f"被説得エージェントの発話{i}は自然さがある", ["5：同意できる", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない"], index=2)
+            chat["persuasive"] = st.radio(f"あなたから見て、被説得エージェントは発話{i}を行った時点で説得を受け入れていた", ["5：同意できる（その時点で説得を受け入れ、生活習慣を改善しようと考えている）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（その時点では説得を受け入れておらず、生活習慣を改善しようとは考えていない）"], index=2)
+            chat["natural"] = st.radio(f"被説得エージェントの発話{i}は応答として自然である", ["5：同意できる（自然である）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（不自然である）"], index=2)
         else:
             st.write(f"あなたの発話{i}")
             st.write("「" + chat["msg"] + "」")
-            chat["persuasive"] = st.radio(f"あなたの発話{i}は説得を受け入れている", ["5：同意できる", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない"], index=2)
+            chat["persuasive"] = st.radio(f"あなたは発話{i}を行った時点で説得を受け入れていた", ["5：同意できる（その時点で説得を受け入れ、生活習慣を改善しようと考えている）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（その時点では説得を受け入れておらず、生活習慣を改善しようとは考えていない）"], index=2)
 
     if st.button("対話全体の評価に進む"):
         st.session_state.page_control = 5
@@ -389,9 +390,9 @@ def dialogue_eval():
         "今回の対話全体を考慮して説得エージェントについて、次の質問に答えてください。"
     )
     # 説得力
-    st.session_state.persuasive = st.radio("この説得エージェントは説得力がある", ["5：同意できる", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない"], index=2)
+    st.session_state.persuasive = st.radio("この説得エージェントは説得力がある", ["5：同意できる（説得力がある）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（説得力がない）"], index=2)
     # 自然さ
-    st.session_state.natural = st.radio("この説得エージェントは自然さがある", ["5：同意できる", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない"], index=2)
+    st.session_state.natural = st.radio("この説得エージェントの応答は自然である", ["5：同意できる（自然である）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（不自然である）"], index=2)
     # 具体的な説得力の評価
     specific_eval = ""
     if st.session_state.topic == "日常的な運動":
@@ -434,7 +435,7 @@ def dialogue_eval():
         specific_eval = f"睡眠時間：{st.session_state.sleep_eval}"
     # 終了ボタン
     if st.button("評価を終了"):
-        st.session_state.dt_now = datetime.datetime.now().isoformat()
+        st.session_state.dt_now = datetime.datetime.now(pytz.timezone('Asia/Tokyo')).isoformat()
         st.session_state.text_data += f"date : {st.session_state.dt_now}\n"
         st.session_state.text_data += f"gender : {st.session_state.gender}\n"
         st.session_state.text_data += f"age : {st.session_state.age}\n"
