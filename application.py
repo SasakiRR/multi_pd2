@@ -186,21 +186,34 @@ def pre_survey():
 def deside_topic():
     st.title("説得対話のトピック選択")
     persuade_list = []
-    if int(st.session_state.exercise1[0]) <= 3:
+    if int(st.session_state.exercise1[0]) <= 2:
         persuade_list.append("日常的な運動")
-    if int(st.session_state.cleaning[0]) <= 3:
+    if int(st.session_state.cleaning[0]) <= 2:
         persuade_list.append("部屋の掃除")
-    if int(st.session_state.meal1[0]) <= 3 and int(st.session_state.meal2[0]) <= 3:
+    if int(st.session_state.meal1[0]) <= 2 and int(st.session_state.meal2[0]) <= 2:
         persuade_list.append("健康的な食事")
-    elif int(st.session_state.meal1[0]) <= 3:
+    elif int(st.session_state.meal1[0]) <= 2:
         persuade_list.append("規則的な食事")
-    elif int(st.session_state.meal2[0]) <= 3:
+    elif int(st.session_state.meal2[0]) <= 2:
         persuade_list.append("栄養バランスの取れた食事")
-    if int(st.session_state.sleep[0]) <= 3:
+    if int(st.session_state.sleep[0]) <= 2:
         persuade_list.append("十分な睡眠")
     if persuade_list == []:
-        st.write("今回は説得対話を行えるトピックがありません。")
-        st.stop()
+        if int(st.session_state.exercise1[0]) <= 3:
+            persuade_list.append("日常的な運動")
+        if int(st.session_state.cleaning[0]) <= 3:
+            persuade_list.append("部屋の掃除")
+        if int(st.session_state.meal1[0]) <= 3 and int(st.session_state.meal2[0]) <= 3:
+            persuade_list.append("健康的な食事")
+        elif int(st.session_state.meal1[0]) <= 3:
+            persuade_list.append("規則的な食事")
+        elif int(st.session_state.meal2[0]) <= 3:
+            persuade_list.append("栄養バランスの取れた食事")
+        if int(st.session_state.sleep[0]) <= 3:
+            persuade_list.append("十分な睡眠")
+        if persuade_list == []:
+            st.write("今回は説得対話を行えるトピックがありません。")
+            st.stop()
     else :
         st.write("以下の中から、説得対話のトピックを選んでください。")
         st.session_state.topic = st.radio("トピック", persuade_list, index=0)
@@ -224,6 +237,9 @@ def to_pd():
     )
     st.write(
         "ボタンをクリックして説得エージェントとの対話を始めてください。"
+    )
+    st.write(
+        "この対話では、説得エージェントがあなたとリサーチアシスタントに対して説得を行います。"
     )
     st.session_state.persuaderprompt = st.session_state.persuaderprompt.replace("{topic}", st.session_state.topic)
     if st.button("説得エージェントとの対話を始める"):
@@ -361,7 +377,7 @@ def chat_system():
 def utterance_eval():
     st.title("発話ごとの評価")
     st.write(
-        "説得エージェントと被説得エージェントとあなたのそれぞれの発話について、次の質問に答えてください。"
+        "説得エージェントとユーザチャットボットとあなたのそれぞれの発話について、次の質問に答えてください。"
     )
     for i, chat in enumerate(st.session_state.chat_log[1:], 1):
         if chat["name"] == ASSISTANT_NAME:
@@ -370,10 +386,10 @@ def utterance_eval():
             chat["persuasive"] = st.radio(f"説得エージェントの発話{i}は説得力がある", ["5：同意できる（説得力がある）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（説得力がない）"], index=2)
             chat["natural"] = st.radio(f"説得エージェントの発話{i}は応答として自然である", ["5：同意できる（自然である）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（不自然である）"], index=2)
         elif chat["name"] == ASSISTANT_NAME2:
-            st.write(f"被説得エージェントの発話{i}")
+            st.write(f"ユーザチャットボットの発話{i}")
             st.write("「" + chat["msg"] + "」")
-            chat["persuasive"] = st.radio(f"あなたから見て、被説得エージェントは発話{i}を行った時点で説得を受け入れていた", ["5：同意できる（その時点で説得を受け入れ、生活習慣を改善しようと考えている）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（その時点では説得を受け入れておらず、生活習慣を改善しようとは考えていない）"], index=2)
-            chat["natural"] = st.radio(f"被説得エージェントの発話{i}は応答として自然である", ["5：同意できる（自然である）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（不自然である）"], index=2)
+            chat["persuasive"] = st.radio(f"あなたから見て、ユーザチャットボットは発話{i}を行った時点で説得を受け入れていた", ["5：同意できる（その時点で説得を受け入れ、生活習慣を改善しようと考えている）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（その時点では説得を受け入れておらず、生活習慣を改善しようとは考えていない）"], index=2)
+            chat["natural"] = st.radio(f"ユーザチャットボットの発話{i}は応答として自然である", ["5：同意できる（自然である）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（不自然である）"], index=2)
         else:
             st.write(f"あなたの発話{i}")
             st.write("「" + chat["msg"] + "」")
