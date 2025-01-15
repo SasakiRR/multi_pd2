@@ -40,32 +40,16 @@ if "gender" not in st.session_state:
     st.session_state.gender = ""
 if "age" not in st.session_state:
     st.session_state.age = ""
-if "exercise1" not in st.session_state:
-    st.session_state.exercise1 = ""
-if "exercise2" not in st.session_state:
-    st.session_state.exercise2 = ""
-if "cleaning" not in st.session_state:
-    st.session_state.cleaning = ""
 if "meal1" not in st.session_state:
     st.session_state.meal1 = ""
 if "meal2" not in st.session_state:
     st.session_state.meal2 = ""
-if "sleep" not in st.session_state:
-    st.session_state.sleep = ""
 
 # 事後アンケートの初期化
-if "exercise1_eval" not in st.session_state:
-    st.session_state.exercise1_eval = ""
-if "exercise2_eval" not in st.session_state:
-    st.session_state.exercise2_eval = ""
-if "cleaning_eval" not in st.session_state:
-    st.session_state.cleaning_eval = ""
 if "meal1_eval" not in st.session_state:
     st.session_state.meal1_eval = ""
 if "meal2_eval" not in st.session_state:
     st.session_state.meal2_eval = ""
-if "sleep_eval" not in st.session_state:
-    st.session_state.sleep_eval = ""
 if "pre_survey" not in st.session_state:
     st.session_state.pre_survey = ""
 
@@ -147,21 +131,6 @@ def pre_survey():
         max_value=80, 
         value=1
     )
-    st.session_state.exercise1 = st.radio(
-        label="普段運動をどれくらいの頻度で行っていますか？（運動とはウォーキングやストレッチ、スポーツなどを含みます）", 
-        options=["5：週5回以上", "4：週に3〜4回程度", "3：週に1〜2回程度", "2：月に1〜2回程度", "1：まったくしない"], 
-        index=2
-        )
-    st.session_state.exercise2 = st.radio(
-        label="1回の運動にどれくらいの時間をかけていますか？", 
-        options=["5：60分以上", "4：40〜60分程度", "3：20〜40分程度", "2：10〜20分程度", "1：10分未満"], 
-        index=2
-        )
-    st.session_state.cleaning = st.radio(
-        label="普段部屋の掃除をどれくらいの頻度で行っていますか？（掃除とは整理整頓、ホコリ取りなどを含みます）", 
-        options=["5：ほぼ毎日", "4：週に2〜3回", "3：週に1回程度", "2：月に2〜3回程度", "1：月に1回以下"], 
-        index=2
-        )
     st.session_state.meal1 = st.radio(
         label="普段どれくらいの頻度で1日に3食食べていますか？", 
         options=["5：毎日", "4：週に3〜4回程度", "3：週に1〜2回程度", "2：月に1〜2回程度", "1：ほとんど運動をしない"], 
@@ -172,14 +141,9 @@ def pre_survey():
         options=["5：考えている", "4：少し考えている", "3：どちらとも言えない", "2：あまり考えていない", "1：考えていない"], 
         index=2
         )
-    st.session_state.sleep = st.radio(
-        label="普段、平均して何時間程度寝ていますか？", 
-        options=["5：8時間以上", "4：7時間程度", "3：6時間程度", "2：5時間程度", "1：5時間未満"], 
-        index=2
-        )
     # 提出ボタン
     if st.button("提出"):
-        st.session_state.page_control = 1
+        st.session_state.page_control = 2
         st.rerun()
 
 # トピック選択の関数
@@ -232,19 +196,32 @@ def deside_topic():
 
 # トピック表示の関数
 def to_pd():
-    st.write(
-        f"あなたが選んだトピックは{st.session_state.topic}です。"
-    )
-    st.write(
-        "ボタンをクリックして説得エージェントとの対話を始めてください。"
-    )
-    st.write(
-        "この対話では、説得エージェントがあなたとリサーチアシスタントに対して説得を行います。"
-    )
-    st.session_state.persuaderprompt = st.session_state.persuaderprompt.replace("{topic}", st.session_state.topic)
-    if st.button("説得エージェントとの対話を始める"):
-        st.session_state.page_control = 3
-        st.rerun()
+    st.session_state.topic = ""
+    if int(st.session_state.meal1[0]) <= 3 and int(st.session_state.meal2[0]) <= 3:
+        st.session_state.topic = "健康的な食事"
+    elif int(st.session_state.meal1[0]) <= 3:
+        st.session_state.topic = "規則的な食事"
+    elif int(st.session_state.meal2[0]) <= 3:
+        st.session_state.topic = "栄養バランスの取れた食事"
+    if st.session_state.topic == "":
+        st.write("今回は説得対話を行えるトピックがありません。")
+        st.stop()
+    else :
+        if st.session_state.topic == "健康的な食事" or st.session_state.topic == "規則的な食事" or st.session_state.topic == "栄養バランスの取れた食事":
+            st.session_state.pre_survey = f"食事頻度：{st.session_state.meal1}\n栄養バランス：{st.session_state.meal2}"
+        st.write(
+            f"あなたが説得を受けるトピックは{st.session_state.topic}です。"
+        )
+        st.write(
+            "ボタンをクリックして説得エージェントとの対話を始めてください。"
+        )
+        st.write(
+            "この対話では、説得エージェントがあなたと人間のリサーチアシスタントに対して説得を行います。"
+        )
+        st.session_state.persuaderprompt = st.session_state.persuaderprompt.replace("{topic}", st.session_state.topic)
+        if st.button("説得エージェントとの対話を始める"):
+            st.session_state.page_control = 3
+            st.rerun()
 
 # チャット画面の関数
 def chat_system():
@@ -411,44 +388,17 @@ def dialogue_eval():
     st.session_state.natural = st.radio("この説得エージェントの応答は自然である", ["5：同意できる（自然である）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（不自然である）"], index=2)
     # 具体的な説得力の評価
     specific_eval = ""
-    if st.session_state.topic == "日常的な運動":
-        st.session_state.exercise1_eval = st.radio(
-            label="今後運動をどれくらいの頻度で行いたいと思いますか？（運動とはウォーキングやストレッチ、スポーツなどを含みます）", 
-            options=["5：週5回以上", "4：週に3〜4回程度", "3：週に1〜2回程度", "2：月に1〜2回程度", "1：まったくしない"], 
-            index=2
-            )
-        st.session_state.exercise2_eval = st.radio(
-            label="今後1回の運動にどれくらいの時間をかけたいと思いますか？", 
-            options=["5：60分以上", "4：40〜60分程度", "3：20〜40分程度", "2：10〜20分程度", "1：10分未満"], 
-            index=2
-            )
-        specific_eval = f"運動頻度：{st.session_state.exercise1_eval}\n運動時間：{st.session_state.exercise2_eval}"
-    elif st.session_state.topic == "部屋の掃除":
-        st.session_state.cleaning_eval = st.radio(
-            label="今後部屋の掃除をどれくらいの頻度で行いたいと思いますか？（掃除とは整理整頓、ホコリ取りなどを含みます）", 
-            options=["5：ほぼ毎日", "4：週に2〜3回", "3：週に1回程度", "2：月に2〜3回程度", "1：月に1回以下"], 
-            index=2
-            )
-        specific_eval = f"掃除頻度：{st.session_state.cleaning_eval}"
-    elif st.session_state.topic == "健康的な食事" or st.session_state.topic == "規則的な食事" or st.session_state.topic == "栄養バランスの取れた食事":
-        st.session_state.meal1_eval = st.radio(
-            label="今後どれくらいの頻度で1日に3食食べたいたいと思いますか？", 
-            options=["5：毎日", "4：週に3〜4回程度", "3：週に1〜2回程度", "2：月に1〜2回程度", "1：ほとんど運動をしない"], 
-            index=2
-            )
-        st.session_state.meal2_eval = st.radio(
-            label="今後食事を取る際、栄養バランスを考えたいと思いますか？", 
-            options=["5：思う", "4：少し思う", "3：どちらとも言えない", "2：あまり思わない", "1：思わない"], 
-            index=2
-            )
-        specific_eval = f"食事頻度：{st.session_state.meal1_eval}\n栄養バランス：{st.session_state.meal2_eval}"
-    elif st.session_state.topic == "十分な睡眠":
-        st.session_state.sleep_eval = st.radio(
-            label="今後、平均して何時間程度寝たいと思いますか？", 
-            options=["5：8時間以上", "4：7時間程度", "3：6時間程度", "2：5時間程度", "1：5時間未満"], 
-            index=2
-            )
-        specific_eval = f"睡眠時間：{st.session_state.sleep_eval}"
+    st.session_state.meal1_eval = st.radio(
+        label="今後どれくらいの頻度で1日に3食食べたいたいと思いますか？", 
+        options=["5：毎日", "4：週に3〜4回程度", "3：週に1〜2回程度", "2：月に1〜2回程度", "1：ほとんど運動をしない"], 
+        index=2
+        )
+    st.session_state.meal2_eval = st.radio(
+        label="今後食事を取る際、栄養バランスを考えたいと思いますか？", 
+        options=["5：思う", "4：少し思う", "3：どちらとも言えない", "2：あまり思わない", "1：思わない"], 
+        index=2
+        )
+    specific_eval = f"食事頻度：{st.session_state.meal1_eval}\n栄養バランス：{st.session_state.meal2_eval}"
     # 終了ボタン
     if st.button("評価を終了"):
         st.session_state.dt_now = datetime.datetime.now(pytz.timezone('Asia/Tokyo')).isoformat()
