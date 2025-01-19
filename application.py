@@ -133,7 +133,7 @@ def pre_survey():
     )
     st.session_state.meal1 = st.radio(
         label="普段どれくらいの頻度で1日に3食食べていますか？", 
-        options=["5：毎日", "4：週に3〜4回程度", "3：週に1〜2回程度", "2：月に1〜2回程度", "1：ほとんど運動をしない"], 
+        options=["5：毎日", "4：週に3〜4回程度", "3：週に1〜2回程度", "2：月に1〜2回程度", "1：ほとんどの日に3食食べない"], 
         index=2
         )
     st.session_state.meal2 = st.radio(
@@ -390,7 +390,7 @@ def dialogue_eval():
     specific_eval = ""
     st.session_state.meal1_eval = st.radio(
         label="今後どれくらいの頻度で1日に3食食べたいたいと思いますか？", 
-        options=["5：毎日", "4：週に3〜4回程度", "3：週に1〜2回程度", "2：月に1〜2回程度", "1：ほとんど運動をしない"], 
+        options=["5：毎日", "4：週に3〜4回程度", "3：週に1〜2回程度", "2：月に1〜2回程度", "1：ほとんどの日に3食食べない"], 
         index=2
         )
     st.session_state.meal2_eval = st.radio(
@@ -399,6 +399,10 @@ def dialogue_eval():
         index=2
         )
     specific_eval = f"食事頻度：{st.session_state.meal1_eval}\n栄養バランス：{st.session_state.meal2_eval}"
+    #最終確認
+    st.markdown("""
+    ## :red[上にスクロールして、全てのアンケートに答えているかを確認してください]
+    """)
     # 終了ボタン
     if st.button("評価を終了"):
         st.session_state.dt_now = datetime.datetime.now(pytz.timezone('Asia/Tokyo')).isoformat()
