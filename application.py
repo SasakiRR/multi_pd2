@@ -216,7 +216,7 @@ def to_pd():
             "ボタンをクリックして説得エージェントとの対話を始めてください。"
         )
         st.write(
-            "この対話では、説得エージェントがあなたと人間のリサーチアシスタントに対して説得を行います。"
+            "この対話では、説得エージェントがあなたとユーザチャットボットに対して説得を行います。"
         )
         st.session_state.persuaderprompt = st.session_state.persuaderprompt.replace("{topic}", st.session_state.topic)
         if st.button("説得エージェントとの対話を始める"):
