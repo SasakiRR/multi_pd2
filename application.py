@@ -18,8 +18,10 @@ USER_NAME = "user"
 ASSISTANT_NAME = "assistant"
 ASSISTANT_NAME2 = "assistant2"
 PERSUADER_PROMPTFILE = "prompts/persuaderprompt2.txt"
+PERSUADEE_PROMPTFILE0 = "prompts/persuadeeprompt0.txt"
 PERSUADEE_PROMPTFILE1 = "prompts/persuadeeprompt1.txt"
 PERSUADEE_PROMPTFILE2 = "prompts/persuadeeprompt2.txt"
+i_turn = 5
 p_turn = 5
 
 # 画像読み込み
@@ -109,7 +111,7 @@ def response_chatgpt(prompt: str):
     response = client.chat.completions.create(
         messages=[
             {"role": "user", "content": prompt}],
-        model="gpt-4-turbo",
+        model="gpt-4o-mini",
         stream=True,
     )
     return response
@@ -127,8 +129,8 @@ def pre_survey():
         )
     st.session_state.age = st.slider(
         label="あなたの年齢を教えてください", 
-        min_value=10, 
-        max_value=80, 
+        min_value=0, 
+        max_value=100, 
         value=1
     )
     st.session_state.meal1 = st.radio(
@@ -143,56 +145,8 @@ def pre_survey():
         )
     # 提出ボタン
     if st.button("提出"):
-        st.session_state.page_control = 2
+        st.session_state.page_control = 1
         st.rerun()
-
-# トピック選択の関数
-def deside_topic():
-    st.title("説得対話のトピック選択")
-    persuade_list = []
-    if int(st.session_state.exercise1[0]) <= 2:
-        persuade_list.append("日常的な運動")
-    if int(st.session_state.cleaning[0]) <= 2:
-        persuade_list.append("部屋の掃除")
-    if int(st.session_state.meal1[0]) <= 2 and int(st.session_state.meal2[0]) <= 2:
-        persuade_list.append("健康的な食事")
-    elif int(st.session_state.meal1[0]) <= 2:
-        persuade_list.append("規則的な食事")
-    elif int(st.session_state.meal2[0]) <= 2:
-        persuade_list.append("栄養バランスの取れた食事")
-    if int(st.session_state.sleep[0]) <= 2:
-        persuade_list.append("十分な睡眠")
-    if persuade_list == []:
-        if int(st.session_state.exercise1[0]) <= 3:
-            persuade_list.append("日常的な運動")
-        if int(st.session_state.cleaning[0]) <= 3:
-            persuade_list.append("部屋の掃除")
-        if int(st.session_state.meal1[0]) <= 3 and int(st.session_state.meal2[0]) <= 3:
-            persuade_list.append("健康的な食事")
-        elif int(st.session_state.meal1[0]) <= 3:
-            persuade_list.append("規則的な食事")
-        elif int(st.session_state.meal2[0]) <= 3:
-            persuade_list.append("栄養バランスの取れた食事")
-        if int(st.session_state.sleep[0]) <= 3:
-            persuade_list.append("十分な睡眠")
-        if persuade_list == []:
-            st.write("今回は説得対話を行えるトピックがありません。")
-            st.stop()
-    else :
-        st.write("以下の中から、説得対話のトピックを選んでください。")
-        st.session_state.topic = st.radio("トピック", persuade_list, index=0)
-        # 決定ボタン
-        if st.button("トピックを決定"):
-            if st.session_state.topic == "日常的な運動":
-                st.session_state.pre_survey = f"運動頻度：{st.session_state.exercise1}\n運動時間：{st.session_state.exercise2}"
-            elif st.session_state.topic == "部屋の掃除":
-                st.session_state.pre_survey = f"掃除頻度：{st.session_state.cleaning}"
-            elif st.session_state.topic == "健康的な食事" or st.session_state.topic == "規則的な食事" or st.session_state.topic == "栄養バランスの取れた食事":
-                st.session_state.pre_survey = f"食事頻度：{st.session_state.meal1}\n栄養バランス：{st.session_state.meal2}"
-            elif st.session_state.topic == "十分な睡眠":
-                st.session_state.pre_survey = f"睡眠時間：{st.session_state.sleep}"
-            st.session_state.page_control = 2
-            st.rerun()
 
 # トピック表示の関数
 def to_pd():
@@ -220,7 +174,7 @@ def to_pd():
         )
         st.session_state.persuaderprompt = st.session_state.persuaderprompt.replace("{topic}", st.session_state.topic)
         if st.button("説得エージェントとの対話を始める"):
-            st.session_state.page_control = 3
+            st.session_state.page_control = 2
             st.rerun()
 
 # チャット画面の関数
@@ -238,9 +192,10 @@ def chat_system():
         }
         </style>
         """, unsafe_allow_html=True)
+    st.title("説得対話用のチャットシステム")
+
     # 最初の説得者の発話
     if st.session_state.chat_log == []:
-        st.title("説得対話用のチャットシステム")
         # 最初の挨拶
         assistant_msg = f"こんにちは！今日は{st.session_state.topic}の重要性についてお話をしたいと思います。"
         with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
@@ -266,89 +221,82 @@ def chat_system():
         time.sleep(len(assistant_msg) * 0.1 + 5)
         st.rerun()
 
-    # turnが6以上の場合は終了
-    if st.session_state.turn > p_turn:
-        st.title("説得対話用のチャットシステム")
-        for idx, chat in enumerate(st.session_state.chat_log):
-            with st.container(key = f"{chat["name"]}_{idx}"):
-                with st.chat_message(chat["name"], avatar=chat["avatar"]):
-                    st.write(chat["msg"])
-        st.write("5ターン経過したので、説得対話は終了しました。")
-        st.write("下のボタンをクリックして、発話評価に進んでください。")
-        if st.button("評価を開始"):
-            st.session_state.page_control = 4
+    # 以前のチャットログを表示
+    for idx, chat in enumerate(st.session_state.chat_log):
+        with st.container(key = f"{chat["name"]}_{idx}"):
+            with st.chat_message(chat["name"], avatar=chat["avatar"]):
+                st.write(chat["msg"])
+
+    # 被説得エージェントの発話
+    if not st.session_state.is_chat_input_disabled and st.session_state.is_persuadee_speak:
+        if st.session_state.turn <= i_turn:
+            # 被説得エージェントが雑談する発話を生成
+            response = response_chatgpt(st.session_state.persuadeeprompt0 + st.session_state.prompt_chat_log)
+        elif st.session_state.turn <= i_turn + 2:
+            # 被説得エージェントが反論する発話を生成
+            response = response_chatgpt(st.session_state.persuadeeprompt1 + st.session_state.prompt_chat_log)
+        else:
+            # 被説得エージェントが説得される発話を生成
+            response = response_chatgpt(st.session_state.persuadeeprompt2 + st.session_state.prompt_chat_log)
+        # 被説得エージェントのメッセージを表示
+        with st.container(key = f"{ASSISTANT_NAME2}_00"):
+            with st.chat_message(ASSISTANT_NAME2, avatar=assistant2_icon):
+                assistant2_msg = ""
+                assistant2_response_area = st.empty()
+                for chunk in response:
+                    if chunk.choices[0].finish_reason is not None:
+                        break
+                    # 回答を逐次表示
+                    assistant2_msg += chunk.choices[0].delta.content
+                    assistant2_response_area.write(assistant2_msg)
+        st.session_state.chat_log.append({"name": ASSISTANT_NAME2, "msg": assistant2_msg, "avatar": assistant2_icon})
+        st.session_state.prompt_chat_log = st.session_state.prompt_chat_log + assistant2_msg + "\n" + "被説得者B："
+        st.session_state.is_persuadee_speak = False
+        st.rerun()
+
+    #ユーザの入力
+    if user_msg := st.chat_input(st.session_state.input_message, disabled=st.session_state.is_chat_input_disabled) or st.session_state.is_chat_input_disabled:
+        if not st.session_state.is_chat_input_disabled:
+            # ユーザの発話を表示
+            with st.container(key = f"{USER_NAME}_00"):
+                with st.chat_message(USER_NAME, avatar=user_icon):
+                    st.write(user_msg)
+            st.session_state.chat_log.append({"name": USER_NAME, "msg": user_msg, "avatar": user_icon})
+            st.session_state.prompt_chat_log = st.session_state.prompt_chat_log+ user_msg + "\n" + "説得者："
+            st.session_state.is_chat_input_disabled = True
+            st.session_state.input_message = "説得文を読んでください"
+            st.session_state.is_persuadee_speak = True
             st.rerun()
-    else:
-        st.title("説得対話用のチャットシステム")
-        # 以前のチャットログを表示
-        for idx, chat in enumerate(st.session_state.chat_log):
-            with st.container(key = f"{chat["name"]}_{idx}"):
-                with st.chat_message(chat["name"], avatar=chat["avatar"]):
-                    st.write(chat["msg"])
-        # 被説得者の発話
-        if not st.session_state.is_chat_input_disabled and st.session_state.is_persuadee_speak:
-            if st.session_state.turn <= 2:
-                # 被説得者が反論する発話を生成
-                response = response_chatgpt(st.session_state.persuadeeprompt1 + st.session_state.prompt_chat_log)
-            else:
-                # 被説得者が説得される発話を生成
-                response = response_chatgpt(st.session_state.persuadeeprompt2 + st.session_state.prompt_chat_log)
-            # 被説得エージェントのメッセージを表示
-            with st.container(key = f"{ASSISTANT_NAME2}_00"):
-                with st.chat_message(ASSISTANT_NAME2, avatar=assistant2_icon):
-                    assistant2_msg = ""
-                    assistant2_response_area = st.empty()
-                    for chunk in response:
-                        if chunk.choices[0].finish_reason is not None:
-                            break
-                        # 回答を逐次表示
-                        assistant2_msg += chunk.choices[0].delta.content
-                        assistant2_response_area.write(assistant2_msg)
-            st.session_state.chat_log.append({"name": ASSISTANT_NAME2, "msg": assistant2_msg, "avatar": assistant2_icon})
-            st.session_state.prompt_chat_log = st.session_state.prompt_chat_log + assistant2_msg + "\n" + "被説得者B："
-            st.session_state.is_persuadee_speak = False
-            st.rerun()
-        #ユーザの入力
-        if user_msg := st.chat_input(st.session_state.input_message, disabled=st.session_state.is_chat_input_disabled) or st.session_state.is_chat_input_disabled:
-            if not st.session_state.is_chat_input_disabled:
-                # ユーザの発話を表示
-                with st.container(key = f"{USER_NAME}_00"):
-                    with st.chat_message(USER_NAME, avatar=user_icon):
-                        st.write(user_msg)
-                st.session_state.chat_log.append({"name": USER_NAME, "msg": user_msg, "avatar": user_icon})
-                st.session_state.prompt_chat_log = st.session_state.prompt_chat_log+ user_msg + "\n" + "説得者："
-                st.session_state.is_chat_input_disabled = True
-                st.session_state.input_message = "説得文を読んでください"
-                st.session_state.is_persuadee_speak = True
-                st.rerun()
-            else:
-                # 説得者の発話を表示
-                if st.session_state.turn >= p_turn:
-                    response = response_chatgpt("# タスク説明\n説得者が日説得者を説得する対話を終了する発話を生成してください．\n\n# 注意事項\n「説得者：」に続く部分のみを出力して下さい．\n出力に「説得者：」を含めないで下さい．\nすべて日本語で出力して下さい．\n\n#対話履歴\n" + st.session_state.prompt_chat_log)
-                else:
-                    response = response_chatgpt(st.session_state.persuaderprompt + st.session_state.prompt_chat_log)
+        else:
+            # 説得者の発話を表示
+            if st.session_state.turn >= p_turn:
+                assistant_msg = f"今日の話が皆さんの日々の食生活改善に少しでも役立てば幸いです。今日はお話しできて本当に良かったです。ありがとうございました！"
                 with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
-                    assistant_msg = ""
-                    assistant_response_area = st.empty()
-                    for chunk in response:
-                        if chunk.choices[0].finish_reason is not None:
-                            break
-                        # 回答を逐次表示
-                        assistant_msg += chunk.choices[0].delta.content
-                        assistant_response_area.write(assistant_msg)
+                    st.write(assistant_msg)
                 st.session_state.chat_log.append({"name": ASSISTANT_NAME, "msg": assistant_msg, "avatar": assistant_icon})
-                st.session_state.prompt_chat_log = st.session_state.prompt_chat_log + assistant_msg + "\n" + "被説得者A："
-                if st.session_state.turn >= p_turn:
-                    st.write("5ターン経過したので、説得対話は終了しました。")
-                    st.write("下のボタンをクリックして、発話評価に進んでください。")
-                    if st.button("評価を開始"):
-                        st.session_state.page_control = 4
-                        st.rerun()
-                st.session_state.turn += 1
-                st.session_state.is_chat_input_disabled = False
-                st.session_state.input_message = "ここにメッセージを入力"
-                time.sleep(len(assistant_msg) * 0.1 + 5)
-                st.rerun()
+                st.write("5ターン経過したので、説得対話は終了しました。")
+                st.write("下のボタンをクリックして、発話評価に進んでください。")
+                if st.button("評価を開始"):
+                    st.session_state.page_control = 3
+                    st.rerun()
+            else:
+                response = response_chatgpt(st.session_state.persuaderprompt + st.session_state.prompt_chat_log)
+            with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
+                assistant_msg = ""
+                assistant_response_area = st.empty()
+                for chunk in response:
+                    if chunk.choices[0].finish_reason is not None:
+                        break
+                    # 回答を逐次表示
+                    assistant_msg += chunk.choices[0].delta.content
+                    assistant_response_area.write(assistant_msg)
+            st.session_state.chat_log.append({"name": ASSISTANT_NAME, "msg": assistant_msg, "avatar": assistant_icon})
+            st.session_state.prompt_chat_log = st.session_state.prompt_chat_log + assistant_msg + "\n" + "被説得者A："
+            st.session_state.turn += 1
+            st.session_state.is_chat_input_disabled = False
+            st.session_state.input_message = "ここにメッセージを入力"
+            time.sleep(len(assistant_msg) * 0.1 + 5)
+            st.rerun()
 
 # 発話評価の関数
 def utterance_eval():
@@ -373,7 +321,7 @@ def utterance_eval():
             chat["persuasive"] = st.radio(f"あなたは発話{i}を行った時点で説得を受け入れていた", ["5：同意できる（その時点で説得を受け入れ、生活習慣を改善しようと考えている）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（その時点では説得を受け入れておらず、生活習慣を改善しようとは考えていない）"], index=2)
 
     if st.button("対話全体の評価に進む"):
-        st.session_state.page_control = 5
+        st.session_state.page_control = 4
         st.rerun()
 
 # 対話全体の評価
@@ -421,7 +369,7 @@ def dialogue_eval():
         st.session_state.text_data += f"{specific_eval}\n"
         with open(f"data/{st.session_state.dt_now}.txt", "w") as f:
             f.write(st.session_state.text_data)
-        st.session_state.page_control = 6
+        st.session_state.page_control = 5
         st.rerun()
 
 def finish():
@@ -437,14 +385,12 @@ def finish():
 if st.session_state.page_control == 0:
     pre_survey()
 elif st.session_state.page_control == 1:
-    deside_topic()
-elif st.session_state.page_control == 2:
     to_pd()
-elif st.session_state.page_control == 3:
+elif st.session_state.page_control == 2:
     chat_system()
-elif st.session_state.page_control == 4:
+elif st.session_state.page_control == 3:
     utterance_eval()
-elif st.session_state.page_control == 5:
+elif st.session_state.page_control == 4:
     dialogue_eval()
-elif st.session_state.page_control == 6:
+elif st.session_state.page_control == 5:
     finish()
