@@ -81,6 +81,8 @@ if "persuadeeprompt2" not in st.session_state:
 # プロンプト用チャットログの初期化
 if "prompt_chat_log" not in st.session_state:
     st.session_state.prompt_chat_log = "説得者："
+if "zprompt_chat_log" not in st.session_state:
+    st.session_state.zprompt_chat_log = "被説得者："
 
 # ターン数の初期化
 if "turn" not in st.session_state:
@@ -161,8 +163,7 @@ def to_pd():
         st.write("今回は説得対話を行えるトピックがありません。")
         st.stop()
     else :
-        if st.session_state.topic == "健康的な食事" or st.session_state.topic == "規則的な食事" or st.session_state.topic == "栄養バランスの取れた食事":
-            st.session_state.pre_survey = f"食事頻度：{st.session_state.meal1}\n栄養バランス：{st.session_state.meal2}"
+        st.session_state.pre_survey = f"食事頻度：{st.session_state.meal1}\n栄養バランス：{st.session_state.meal2}"
         st.write(
             f"あなたが説得を受けるトピックは{st.session_state.topic}です。"
         )
@@ -194,6 +195,50 @@ def chat_system():
         """, unsafe_allow_html=True)
     st.title("説得対話用のチャットシステム")
 
+    # 被説得エージェントとユーザのi_turnのアイスブレイク雑談対話
+    if st.session_state.turn <= i_turn:
+        # 被説得エージェントの発話
+        if st.session_state.turn == 1:
+            # 最初の挨拶
+            assistant_msg = f"こんにちは！少し私とお話ししませんか？"
+            with st.container(key = f"{ASSISTANT_NAME2}_00"):
+                with st.chat_message(ASSISTANT_NAME2, avatar=assistant_icon):
+                    st.write(assistant_msg)
+            st.session_state.chat_log.append({"name": ASSISTANT_NAME2, "msg": assistant_msg, "avatar": assistant2_icon})
+            st.session_state.zprompt_chat_log = st.session_state.zprompt_chat_log + assistant2_msg + "\n" + "説得者："
+        if st.session_state.is_chat_input_disabled:
+            # 被説得エージェントが雑談する発話を生成
+            response = response_chatgpt(st.session_state.persuadeeprompt0 + st.session_state.zprompt_chat_log)
+            # 被説得エージェントのメッセージをストリーミング表示
+            with st.container(key = f"{ASSISTANT_NAME2}_00"):
+                with st.chat_message(ASSISTANT_NAME2, avatar=assistant2_icon):
+                    assistant2_msg = ""
+                    assistant2_response_area = st.empty()
+                    for chunk in response:
+                        if chunk.choices[0].finish_reason is not None:
+                            break
+                        assistant2_msg += chunk.choices[0].delta.content
+                        assistant2_response_area.write(assistant2_msg)
+            st.session_state.chat_log.append({"name": ASSISTANT_NAME2, "msg": assistant2_msg, "avatar": assistant2_icon})
+            st.session_state.zprompt_chat_log = st.session_state.zprompt_chat_log + assistant2_msg + "\n" + "被説得者B："
+            st.session_state.turn += 1
+            st.session_state.is_chat_input_disabled = False
+            st.session_state.input_message = "ここにメッセージを入力"
+            st.rerun()
+        #ユーザの入力
+        if user_msg := st.chat_input(st.session_state.input_message, disabled=st.session_state.is_chat_input_disabled) or st.session_state.is_chat_input_disabled:
+            if not st.session_state.is_chat_input_disabled:
+                # ユーザの発話を表示
+                with st.container(key = f"{USER_NAME}_00"):
+                    with st.chat_message(USER_NAME, avatar=user_icon):
+                        st.write(user_msg)
+                st.session_state.chat_log.append({"name": USER_NAME, "msg": user_msg, "avatar": user_icon})
+                st.session_state.zprompt_chat_log = st.session_state.zprompt_chat_log + user_msg + "\n" + "説得者："
+                st.session_state.is_chat_input_disabled = True
+                st.session_state.input_message = "相手の発話を読んでください"
+                st.session_state.is_persuadee_speak = True
+                st.rerun()
+
     # 最初の説得者の発話
     if st.session_state.chat_log == []:
         # 最初の挨拶
@@ -211,7 +256,6 @@ def chat_system():
             for chunk in response:
                 if chunk.choices[0].finish_reason is not None:
                     break
-                # 回答を逐次表示
                 assistant_msg += chunk.choices[0].delta.content
                 assistant_response_area.write(assistant_msg)
         st.session_state.chat_log.append({"name": ASSISTANT_NAME, "msg": assistant_msg, "avatar": assistant_icon})
@@ -229,10 +273,7 @@ def chat_system():
 
     # 被説得エージェントの発話
     if not st.session_state.is_chat_input_disabled and st.session_state.is_persuadee_speak:
-        if st.session_state.turn <= i_turn:
-            # 被説得エージェントが雑談する発話を生成
-            response = response_chatgpt(st.session_state.persuadeeprompt0 + st.session_state.prompt_chat_log)
-        elif st.session_state.turn <= i_turn + 2:
+        if st.session_state.turn <= i_turn + 2:
             # 被説得エージェントが反論する発話を生成
             response = response_chatgpt(st.session_state.persuadeeprompt1 + st.session_state.prompt_chat_log)
         else:
@@ -246,7 +287,6 @@ def chat_system():
                 for chunk in response:
                     if chunk.choices[0].finish_reason is not None:
                         break
-                    # 回答を逐次表示
                     assistant2_msg += chunk.choices[0].delta.content
                     assistant2_response_area.write(assistant2_msg)
         st.session_state.chat_log.append({"name": ASSISTANT_NAME2, "msg": assistant2_msg, "avatar": assistant2_icon})
@@ -262,7 +302,7 @@ def chat_system():
                 with st.chat_message(USER_NAME, avatar=user_icon):
                     st.write(user_msg)
             st.session_state.chat_log.append({"name": USER_NAME, "msg": user_msg, "avatar": user_icon})
-            st.session_state.prompt_chat_log = st.session_state.prompt_chat_log+ user_msg + "\n" + "説得者："
+            st.session_state.prompt_chat_log = st.session_state.prompt_chat_log + user_msg + "\n" + "説得者："
             st.session_state.is_chat_input_disabled = True
             st.session_state.input_message = "説得文を読んでください"
             st.session_state.is_persuadee_speak = True
@@ -287,7 +327,6 @@ def chat_system():
                 for chunk in response:
                     if chunk.choices[0].finish_reason is not None:
                         break
-                    # 回答を逐次表示
                     assistant_msg += chunk.choices[0].delta.content
                     assistant_response_area.write(assistant_msg)
             st.session_state.chat_log.append({"name": ASSISTANT_NAME, "msg": assistant_msg, "avatar": assistant_icon})
@@ -319,7 +358,10 @@ def utterance_eval():
             st.write(f"あなたの発話{i}")
             st.write("「" + chat["msg"] + "」")
             chat["persuasive"] = st.radio(f"あなたは発話{i}を行った時点で説得を受け入れていた", ["5：同意できる（その時点で説得を受け入れ、生活習慣を改善しようと考えている）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（その時点では説得を受け入れておらず、生活習慣を改善しようとは考えていない）"], index=2)
-
+    #最終確認
+    st.markdown("""
+    ## :red[上にスクロールして、全てのアンケートに答えているかを確認してからボタンを押してください]
+    """)
     if st.button("対話全体の評価に進む"):
         st.session_state.page_control = 4
         st.rerun()
@@ -346,10 +388,13 @@ def dialogue_eval():
         options=["5：思う", "4：少し思う", "3：どちらとも言えない", "2：あまり思わない", "1：思わない"], 
         index=2
         )
+    txt = st.text_area(
+        label="AIエージェントと対話をして気づいたことや感想を自由に記述してください。", height=150, max_chars=100
+    )
     specific_eval = f"食事頻度：{st.session_state.meal1_eval}\n栄養バランス：{st.session_state.meal2_eval}"
     #最終確認
     st.markdown("""
-    ## :red[上にスクロールして、全てのアンケートに答えているかを確認してください]
+    ## :red[上にスクロールして、全てのアンケートに答えているかを確認してからボタンを押してください]
     """)
     # 終了ボタン
     if st.button("評価を終了"):
@@ -367,6 +412,7 @@ def dialogue_eval():
         st.session_state.text_data += f"all_persuasive : {st.session_state.persuasive}\n"
         st.session_state.text_data += f"all_natural : {st.session_state.natural}\n"
         st.session_state.text_data += f"{specific_eval}\n"
+        st.session_state.text_data += f"自由記述：{txt}\n"
         with open(f"data/{st.session_state.dt_now}.txt", "w") as f:
             f.write(st.session_state.text_data)
         st.session_state.page_control = 5
