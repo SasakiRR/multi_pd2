@@ -1,6 +1,7 @@
 import os
 import time
 import pytz
+import json
 import datetime
 import numpy as np
 from PIL import Image
@@ -197,14 +198,18 @@ def chat_system():
 
     # 被説得エージェントとユーザのi_turnのアイスブレイク雑談対話
     if st.session_state.turn <= i_turn:
+        # 以前のチャットログを表示
+        for idx, chat in enumerate(st.session_state.chat_log):
+            with st.container(key = f"{chat["name"]}_{idx}"):
+                with st.chat_message(chat["name"], avatar=chat["avatar"]):
+                    st.write(chat["msg"])
         # 被説得エージェントの発話
         if st.session_state.turn == 1:
-            # 最初の挨拶
             assistant_msg = f"こんにちは！少し私とお話ししませんか？"
             with st.container(key = f"{ASSISTANT_NAME2}_00"):
-                with st.chat_message(ASSISTANT_NAME2, avatar=assistant_icon):
+                with st.chat_message(ASSISTANT_NAME2, avatar=assistant2_icon):
                     st.write(assistant_msg)
-            st.session_state.chat_log.append({"name": ASSISTANT_NAME2, "msg": assistant_msg, "avatar": assistant2_icon})
+            st.session_state.chat_log.append({"name": ASSISTANT_NAME2, "msg": assistant2_msg, "avatar": assistant2_icon})
             st.session_state.zprompt_chat_log = st.session_state.zprompt_chat_log + assistant2_msg + "\n" + "説得者："
         if st.session_state.is_chat_input_disabled:
             # 被説得エージェントが雑談する発話を生成
@@ -221,9 +226,7 @@ def chat_system():
                         assistant2_response_area.write(assistant2_msg)
             st.session_state.chat_log.append({"name": ASSISTANT_NAME2, "msg": assistant2_msg, "avatar": assistant2_icon})
             st.session_state.zprompt_chat_log = st.session_state.zprompt_chat_log + assistant2_msg + "\n" + "被説得者B："
-            st.session_state.turn += 1
             st.session_state.is_chat_input_disabled = False
-            st.session_state.input_message = "ここにメッセージを入力"
             st.rerun()
         #ユーザの入力
         if user_msg := st.chat_input(st.session_state.input_message, disabled=st.session_state.is_chat_input_disabled) or st.session_state.is_chat_input_disabled:
@@ -235,14 +238,13 @@ def chat_system():
                 st.session_state.chat_log.append({"name": USER_NAME, "msg": user_msg, "avatar": user_icon})
                 st.session_state.zprompt_chat_log = st.session_state.zprompt_chat_log + user_msg + "\n" + "説得者："
                 st.session_state.is_chat_input_disabled = True
-                st.session_state.input_message = "相手の発話を読んでください"
-                st.session_state.is_persuadee_speak = True
+                st.session_state.turn += 1
                 st.rerun()
 
     # 最初の説得者の発話
     if st.session_state.chat_log == []:
         # 最初の挨拶
-        assistant_msg = f"こんにちは！今日は{st.session_state.topic}の重要性についてお話をしたいと思います。"
+        assistant_msg = f"こんにちは！お話の途中にすみませんが、今から{st.session_state.topic}の重要性についてお話をさせてもらおうと思います。"
         with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
             st.write(assistant_msg)
         st.session_state.chat_log.append({"name": ASSISTANT_NAME, "msg": assistant_msg, "avatar": assistant_icon})
