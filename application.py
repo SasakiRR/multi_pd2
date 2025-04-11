@@ -401,6 +401,56 @@ def dialogue_eval():
     # 終了ボタン
     if st.button("評価を終了"):
         st.session_state.dt_now = datetime.datetime.now(pytz.timezone('Asia/Tokyo')).isoformat()
+        data = {
+            "date": st.session_state.dt_now,
+            "gender": st.session_state.gender,
+            "age": st.session_state.age,
+            "topic": st.session_state.topic,
+        }
+        # pre_surveyが「key : value」形式の複数行文字列なら辞書に変換
+        pre_survey_dict = {}
+        for line in st.session_state.pre_survey.splitlines():
+            if "：" in line:
+                key, value = line.split("：", 1)
+                try:
+                    num, label = value.split("：", 1)
+                    pre_survey_dict[key] = {"value": int(num), "label": label}
+                except ValueError:
+                    pre_survey_dict[key] = value
+        data.update(pre_survey_dict)
+        dialogue = []
+        for chat in st.session_state.chat_log[1:]:  # 最初の要素は除外
+            chat_entry = {
+                "speaker": chat["name"],
+                "message": chat["msg"],
+                "persuasive": chat["persuasive"]
+            }
+            if chat["name"] != USER_NAME:
+                chat_entry["natural"] = chat["natural"]
+            dialogue.append(chat_entry)
+        data["dialogue"] = dialogue
+        data["all_persuasive"] = st.session_state.persuasive
+        data["all_natural"] = st.session_state.natural
+        # specific_evalが「key : value」形式の複数行文字列なら辞書に変換
+        specific_eval_dict = {}
+        for line in specific_eval.splitlines():
+            if "：" in line:
+                key, value = line.split("：", 1)
+                try:
+                    num, label = value.split("：", 1)
+                    specific_eval_dict[key] = {"value": int(num), "label": label}
+                except ValueError:
+                    specific_eval_dict[key] = value
+        data.update(specific_eval_dict)
+        data["自由記述"] = txt
+        # 保存
+        with open(f"data/{st.session_state.dt_now}.json", "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        st.session_state.page_control = 5
+        st.rerun()
+    """
+    if st.button("評価を終了"):
+        st.session_state.dt_now = datetime.datetime.now(pytz.timezone('Asia/Tokyo')).isoformat()
         st.session_state.text_data += f"date : {st.session_state.dt_now}\n"
         st.session_state.text_data += f"gender : {st.session_state.gender}\n"
         st.session_state.text_data += f"age : {st.session_state.age}\n"
@@ -419,6 +469,7 @@ def dialogue_eval():
             f.write(st.session_state.text_data)
         st.session_state.page_control = 5
         st.rerun()
+    """
 
 def finish():
     st.title("評価が完了しました。")
