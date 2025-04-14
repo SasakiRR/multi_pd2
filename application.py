@@ -105,10 +105,6 @@ if "is_persuadee_speak" not in st.session_state:
 if "dt_now" not in st.session_state:
     st.session_state.dt_now = ""
 
-# 出力ファイルの初期化
-if "text_data" not in st.session_state:
-    st.session_state.text_data = ""
-
 # ChatGPTによるレスポンス取得の関数
 def response_chatgpt(prompt: str):
     response = client.chat.completions.create(
@@ -130,12 +126,7 @@ def pre_survey():
         options=["男性", "女性", "その他"], 
         index=0
         )
-    st.session_state.age = st.slider(
-        label="あなたの年齢を教えてください", 
-        min_value=0, 
-        max_value=100, 
-        value=1
-    )
+    st.session_state.age = int(st.number_input("あなたの年齢を教えてください", step=1))
     st.session_state.meal1 = st.radio(
         label="普段どれくらいの頻度で1日に3食食べていますか？", 
         options=["5：毎日", "4：週に3〜4回程度", "3：週に1〜2回程度", "2：月に1〜2回程度", "1：ほとんどの日に3食食べない"], 
@@ -155,7 +146,7 @@ def pre_survey():
 def to_pd():
     st.session_state.topic = ""
     if int(st.session_state.meal1[0]) <= 3 and int(st.session_state.meal2[0]) <= 3:
-        st.session_state.topic = "健康的な食事"
+        st.session_state.topic = "規則的で栄養バランスの取れた食事"
     elif int(st.session_state.meal1[0]) <= 3:
         st.session_state.topic = "規則的な食事"
     elif int(st.session_state.meal2[0]) <= 3:
@@ -448,37 +439,16 @@ def dialogue_eval():
             json.dump(data, f, ensure_ascii=False, indent=2)
         st.session_state.page_control = 5
         st.rerun()
-    """
-    if st.button("評価を終了"):
-        st.session_state.dt_now = datetime.datetime.now(pytz.timezone('Asia/Tokyo')).isoformat()
-        st.session_state.text_data += f"date : {st.session_state.dt_now}\n"
-        st.session_state.text_data += f"gender : {st.session_state.gender}\n"
-        st.session_state.text_data += f"age : {st.session_state.age}\n"
-        st.session_state.text_data += f"topic : {st.session_state.topic}\n"
-        st.session_state.text_data += f"{st.session_state.pre_survey}\n"
-        for chat in st.session_state.chat_log[1:]:
-            st.session_state.text_data += f"{chat['name']} : {chat['msg']}\n"
-            st.session_state.text_data += f"persuasive : {chat['persuasive']}\n"
-            if chat["name"] != USER_NAME:
-                st.session_state.text_data += f"natural : {chat['natural']}\n"
-        st.session_state.text_data += f"all_persuasive : {st.session_state.persuasive}\n"
-        st.session_state.text_data += f"all_natural : {st.session_state.natural}\n"
-        st.session_state.text_data += f"{specific_eval}\n"
-        st.session_state.text_data += f"自由記述：{txt}\n"
-        with open(f"data/{st.session_state.dt_now}.txt", "w") as f:
-            f.write(st.session_state.text_data)
-        st.session_state.page_control = 5
-        st.rerun()
-    """
 
 def finish():
     st.title("評価が完了しました。")
     st.write("ありがとうございました。")
-    st.download_button(
-    "出力ファイルのダウンロード", 
-    st.session_state.text_data,
-    file_name=f"{st.session_state.dt_now}.txt",
-    )
+    with open(f"data/{st.session_state.dt_now}.json", "rb") as file:
+        st.download_button(
+            label="出力ファイルのダウンロード", 
+            data=file,
+            file_name=f"{st.session_state.dt_now}.json",
+        )
 
 #ページの管理
 if st.session_state.page_control == 0:
