@@ -43,24 +43,12 @@ if "gender" not in st.session_state:
     st.session_state.gender = ""
 if "age" not in st.session_state:
     st.session_state.age = ""
+if "name" not in st.session_state:
+    st.session_state.name = ""
 if "meal1" not in st.session_state:
     st.session_state.meal1 = ""
 if "meal2" not in st.session_state:
     st.session_state.meal2 = ""
-
-# 事後アンケートの初期化
-if "meal1_eval" not in st.session_state:
-    st.session_state.meal1_eval = ""
-if "meal2_eval" not in st.session_state:
-    st.session_state.meal2_eval = ""
-if "pre_survey" not in st.session_state:
-    st.session_state.pre_survey = ""
-
-# 対話全体の評価値の初期化
-if "persuasive" not in st.session_state:
-    st.session_state.persuasive = 0
-if "natural" not in st.session_state:
-    st.session_state.natural = 0
 
 # 表示用チャットログの初期化
 if "chat_log" not in st.session_state:
@@ -72,6 +60,9 @@ if "persuaderprompt" not in st.session_state:
         st.session_state.persuaderprompt = f.read()
 
 # 被説得者プロンプトの初期化
+if "persuadeeprompt0" not in st.session_state:
+    with open(PERSUADEE_PROMPTFILE0, "r") as f:
+        st.session_state.persuadeeprompt0 = f.read()
 if "persuadeeprompt1" not in st.session_state:
     with open(PERSUADEE_PROMPTFILE1, "r") as f:
         st.session_state.persuadeeprompt1 = f.read()
@@ -81,9 +72,9 @@ if "persuadeeprompt2" not in st.session_state:
 
 # プロンプト用チャットログの初期化
 if "prompt_chat_log" not in st.session_state:
-    st.session_state.prompt_chat_log = "説得者："
+    st.session_state.prompt_chat_log = "説得エージェント："
 if "zprompt_chat_log" not in st.session_state:
-    st.session_state.zprompt_chat_log = "被説得者："
+    st.session_state.zprompt_chat_log = "対話エージェント："
 
 # ターン数の初期化
 if "turn" not in st.session_state:
@@ -127,6 +118,7 @@ def pre_survey():
         index=0
         )
     st.session_state.age = int(st.number_input("あなたの年齢を教えてください", step=1))
+    st.session_state.name = st.text_input("対話内で使用する名前を入力してください")
     st.session_state.meal1 = st.radio(
         label="普段どれくらいの頻度で1日に3食食べていますか？", 
         options=["5：毎日", "4：週に3〜4回程度", "3：週に1〜2回程度", "2：月に1〜2回程度", "1：ほとんどの日に3食食べない"], 
@@ -155,18 +147,23 @@ def to_pd():
         st.write("今回は説得対話を行えるトピックがありません。")
         st.stop()
     else :
-        st.session_state.pre_survey = f"食事頻度：{st.session_state.meal1}\n栄養バランス：{st.session_state.meal2}"
         st.write(
             f"あなたが説得を受けるトピックは{st.session_state.topic}です。"
         )
         st.write(
-            "ボタンをクリックして説得エージェントとの対話を始めてください。"
+            "まずは、対話エージェントとの雑談を行います。"
         )
         st.write(
-            "この対話では、説得エージェントがあなたと被説得エージェントに対して説得を行います。"
+            "ボタンをクリックして対話エージェントとの対話を始めてください。"
         )
+        st.write(
+            "この対話では途中から説得エージェントが合流し、あなたと対話エージェントに対して説得を行います。"
+        )
+        st.session_state.persuadeeprompt0 = st.session_state.persuadeeprompt0.replace("{user}", st.session_state.name)
+        st.session_state.persuadeeprompt1 = st.session_state.persuadeeprompt1.replace("{topic}", st.session_state.topic).replace("{user}", st.session_state.name)
+        st.session_state.persuadeeprompt2 = st.session_state.persuadeeprompt2.replace("{topic}", st.session_state.topic).replace("{user}", st.session_state.name)
         st.session_state.persuaderprompt = st.session_state.persuaderprompt.replace("{topic}", st.session_state.topic)
-        if st.button("説得エージェントとの対話を始める"):
+        if st.button("対話エージェントとの対話を始める"):
             st.session_state.page_control = 2
             st.rerun()
 
@@ -187,25 +184,25 @@ def chat_system():
         """, unsafe_allow_html=True)
     st.title("説得対話用のチャットシステム")
 
-    # 被説得エージェントとユーザのi_turnのアイスブレイク雑談対話
+    #対話エージェントとユーザのi_turnのアイスブレイク雑談対話
     if st.session_state.turn <= i_turn:
         # 以前のチャットログを表示
-        for idx, chat in enumerate(st.session_state.chat_log):
+        for idx, chat in enumerate(st.session_state.chat_log, 1):
             with st.container(key = f"{chat["name"]}_{idx}"):
                 with st.chat_message(chat["name"], avatar=chat["avatar"]):
                     st.write(chat["msg"])
-        # 被説得エージェントの発話
+        # 対話エージェントの発話
         if st.session_state.turn == 1:
-            assistant_msg = f"こんにちは！少し私とお話ししませんか？"
-            with st.container(key = f"{ASSISTANT_NAME2}_00"):
+            assistant2_msg = f"こんにちは！説得対話が始まる前に少し雑談をしましょう。"
+            with st.container(key = f"{ASSISTANT_NAME2}_10"):
                 with st.chat_message(ASSISTANT_NAME2, avatar=assistant2_icon):
-                    st.write(assistant_msg)
+                    st.write(assistant2_msg)
             st.session_state.chat_log.append({"name": ASSISTANT_NAME2, "msg": assistant2_msg, "avatar": assistant2_icon})
-            st.session_state.zprompt_chat_log = st.session_state.zprompt_chat_log + assistant2_msg + "\n" + "説得者："
+            st.session_state.zprompt_chat_log = st.session_state.zprompt_chat_log + assistant2_msg + "\n" + "対話エージェント："
         if st.session_state.is_chat_input_disabled:
-            # 被説得エージェントが雑談する発話を生成
+            # 対話エージェントが雑談する発話を生成
             response = response_chatgpt(st.session_state.persuadeeprompt0 + st.session_state.zprompt_chat_log)
-            # 被説得エージェントのメッセージをストリーミング表示
+            # 対話エージェントのメッセージをストリーミング表示
             with st.container(key = f"{ASSISTANT_NAME2}_00"):
                 with st.chat_message(ASSISTANT_NAME2, avatar=assistant2_icon):
                     assistant2_msg = ""
@@ -216,7 +213,7 @@ def chat_system():
                         assistant2_msg += chunk.choices[0].delta.content
                         assistant2_response_area.write(assistant2_msg)
             st.session_state.chat_log.append({"name": ASSISTANT_NAME2, "msg": assistant2_msg, "avatar": assistant2_icon})
-            st.session_state.zprompt_chat_log = st.session_state.zprompt_chat_log + assistant2_msg + "\n" + "被説得者B："
+            st.session_state.zprompt_chat_log = st.session_state.zprompt_chat_log + assistant2_msg + "\n" + f"{st.session_state.name}："
             st.session_state.is_chat_input_disabled = False
             st.rerun()
         #ユーザの入力
@@ -227,19 +224,19 @@ def chat_system():
                     with st.chat_message(USER_NAME, avatar=user_icon):
                         st.write(user_msg)
                 st.session_state.chat_log.append({"name": USER_NAME, "msg": user_msg, "avatar": user_icon})
-                st.session_state.zprompt_chat_log = st.session_state.zprompt_chat_log + user_msg + "\n" + "説得者："
+                st.session_state.zprompt_chat_log = st.session_state.zprompt_chat_log + user_msg + "\n" + "説得エージェント："
                 st.session_state.is_chat_input_disabled = True
                 st.session_state.turn += 1
                 st.rerun()
 
-    # 最初の説得者の発話
+    # 最初の説得エージェントの発話
     if st.session_state.chat_log == []:
         # 最初の挨拶
         assistant_msg = f"こんにちは！お話の途中にすみませんが、今から{st.session_state.topic}の重要性についてお話をさせてもらおうと思います。"
         with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
             st.write(assistant_msg)
         st.session_state.chat_log.append({"name": ASSISTANT_NAME, "msg": assistant_msg, "avatar": assistant_icon})
-        st.session_state.prompt_chat_log = st.session_state.prompt_chat_log + assistant_msg + "\n" + "説得者："
+        st.session_state.prompt_chat_log = st.session_state.prompt_chat_log + assistant_msg + "\n" + "説得エージェント："
 
         # 最初の説得
         response = response_chatgpt(st.session_state.persuaderprompt + st.session_state.prompt_chat_log)
@@ -252,7 +249,7 @@ def chat_system():
                 assistant_msg += chunk.choices[0].delta.content
                 assistant_response_area.write(assistant_msg)
         st.session_state.chat_log.append({"name": ASSISTANT_NAME, "msg": assistant_msg, "avatar": assistant_icon})
-        st.session_state.prompt_chat_log = st.session_state.prompt_chat_log + assistant_msg + "\n" + "被説得者A："
+        st.session_state.prompt_chat_log = st.session_state.prompt_chat_log + assistant_msg + "\n" + "対話エージェント："
         st.chat_input("説得文を読んでください", disabled=True)
         st.session_state.is_chat_input_disabled = False
         time.sleep(len(assistant_msg) * 0.1 + 5)
@@ -264,15 +261,15 @@ def chat_system():
             with st.chat_message(chat["name"], avatar=chat["avatar"]):
                 st.write(chat["msg"])
 
-    # 被説得エージェントの発話
+    # 対話エージェントの発話
     if not st.session_state.is_chat_input_disabled and st.session_state.is_persuadee_speak:
         if st.session_state.turn <= i_turn + 2:
-            # 被説得エージェントが反論する発話を生成
+            # 対話エージェントが反論する発話を生成
             response = response_chatgpt(st.session_state.persuadeeprompt1 + st.session_state.prompt_chat_log)
         else:
-            # 被説得エージェントが説得される発話を生成
+            # 対話エージェントが説得される発話を生成
             response = response_chatgpt(st.session_state.persuadeeprompt2 + st.session_state.prompt_chat_log)
-        # 被説得エージェントのメッセージを表示
+        # 対話エージェントのメッセージを表示
         with st.container(key = f"{ASSISTANT_NAME2}_00"):
             with st.chat_message(ASSISTANT_NAME2, avatar=assistant2_icon):
                 assistant2_msg = ""
@@ -283,7 +280,7 @@ def chat_system():
                     assistant2_msg += chunk.choices[0].delta.content
                     assistant2_response_area.write(assistant2_msg)
         st.session_state.chat_log.append({"name": ASSISTANT_NAME2, "msg": assistant2_msg, "avatar": assistant2_icon})
-        st.session_state.prompt_chat_log = st.session_state.prompt_chat_log + assistant2_msg + "\n" + "被説得者B："
+        st.session_state.prompt_chat_log = st.session_state.prompt_chat_log + assistant2_msg + "\n" + f"{st.session_state.name}："
         st.session_state.is_persuadee_speak = False
         st.rerun()
 
@@ -295,13 +292,13 @@ def chat_system():
                 with st.chat_message(USER_NAME, avatar=user_icon):
                     st.write(user_msg)
             st.session_state.chat_log.append({"name": USER_NAME, "msg": user_msg, "avatar": user_icon})
-            st.session_state.prompt_chat_log = st.session_state.prompt_chat_log + user_msg + "\n" + "説得者："
+            st.session_state.prompt_chat_log = st.session_state.prompt_chat_log + user_msg + "\n" + "説得エージェント："
             st.session_state.is_chat_input_disabled = True
             st.session_state.input_message = "説得文を読んでください"
             st.session_state.is_persuadee_speak = True
             st.rerun()
         else:
-            # 説得者の発話を表示
+            # 説得エージェントの発話を表示
             if st.session_state.turn >= p_turn:
                 assistant_msg = f"今日の話が皆さんの日々の食生活改善に少しでも役立てば幸いです。今日はお話しできて本当に良かったです。ありがとうございました！"
                 with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
@@ -323,7 +320,7 @@ def chat_system():
                     assistant_msg += chunk.choices[0].delta.content
                     assistant_response_area.write(assistant_msg)
             st.session_state.chat_log.append({"name": ASSISTANT_NAME, "msg": assistant_msg, "avatar": assistant_icon})
-            st.session_state.prompt_chat_log = st.session_state.prompt_chat_log + assistant_msg + "\n" + "被説得者A："
+            st.session_state.prompt_chat_log = st.session_state.prompt_chat_log + assistant_msg + "\n" + "対話エージェント："
             st.session_state.turn += 1
             st.session_state.is_chat_input_disabled = False
             st.session_state.input_message = "ここにメッセージを入力"
@@ -334,19 +331,19 @@ def chat_system():
 def utterance_eval():
     st.title("発話ごとの評価")
     st.write(
-        "説得エージェントと被説得エージェントとあなたのそれぞれの発話について、次の質問に答えてください。"
+        "説得エージェントと対話エージェントとあなたのそれぞれの発話について、次の質問に答えてください。"
     )
-    for i, chat in enumerate(st.session_state.chat_log[1:], 1):
+    for i, chat in enumerate(st.session_state.chat_log[12:], 1):
         if chat["name"] == ASSISTANT_NAME:
             st.write(f"説得エージェントの発話{i}")
             st.write("「" + chat["msg"] + "」")
             chat["persuasive"] = st.radio(f"説得エージェントの発話{i}は説得力がある", ["5：同意できる（説得力がある）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（説得力がない）"], index=2)
             chat["natural"] = st.radio(f"説得エージェントの発話{i}は応答として自然である", ["5：同意できる（自然である）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（不自然である）"], index=2)
         elif chat["name"] == ASSISTANT_NAME2:
-            st.write(f"被説得エージェントの発話{i}")
+            st.write(f"対話エージェントの発話{i}")
             st.write("「" + chat["msg"] + "」")
-            chat["persuasive"] = st.radio(f"あなたから見て、被説得エージェントは発話{i}を行った時点で説得を受け入れていた", ["5：同意できる（その時点で説得を受け入れ、生活習慣を改善しようと考えている）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（その時点では説得を受け入れておらず、生活習慣を改善しようとは考えていない）"], index=2)
-            chat["natural"] = st.radio(f"被説得エージェントの発話{i}は応答として自然である", ["5：同意できる（自然である）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（不自然である）"], index=2)
+            chat["persuasive"] = st.radio(f"あなたから見て、対話エージェントは発話{i}を行った時点で説得を受け入れていた", ["5：同意できる（その時点で説得を受け入れ、生活習慣を改善しようと考えている）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（その時点では説得を受け入れておらず、生活習慣を改善しようとは考えていない）"], index=2)
+            chat["natural"] = st.radio(f"対話エージェントの発話{i}は応答として自然である", ["5：同意できる（自然である）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（不自然である）"], index=2)
         else:
             st.write(f"あなたの発話{i}")
             st.write("「" + chat["msg"] + "」")
@@ -366,25 +363,23 @@ def dialogue_eval():
         "今回の対話全体を考慮して説得エージェントについて、次の質問に答えてください。"
     )
     # 説得力
-    st.session_state.persuasive = st.radio("この説得エージェントは説得力がある", ["5：同意できる（説得力がある）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（説得力がない）"], index=2)
+    persuasive = st.radio("この説得エージェントは説得力がある", ["5：同意できる（説得力がある）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（説得力がない）"], index=2)
     # 自然さ
-    st.session_state.natural = st.radio("この説得エージェントの応答は自然である", ["5：同意できる（自然である）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（不自然である）"], index=2)
+    natural = st.radio("この説得エージェントの応答は自然である", ["5：同意できる（自然である）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（不自然である）"], index=2)
     # 具体的な説得力の評価
-    specific_eval = ""
-    st.session_state.meal1_eval = st.radio(
+    meal1_eval = st.radio(
         label="今後どれくらいの頻度で1日に3食食べたいたいと思いますか？", 
         options=["5：毎日", "4：週に3〜4回程度", "3：週に1〜2回程度", "2：月に1〜2回程度", "1：ほとんどの日に3食食べない"], 
         index=2
         )
-    st.session_state.meal2_eval = st.radio(
+    meal2_eval = st.radio(
         label="今後食事を取る際、栄養バランスを考えたいと思いますか？", 
         options=["5：思う", "4：少し思う", "3：どちらとも言えない", "2：あまり思わない", "1：思わない"], 
         index=2
         )
     txt = st.text_area(
-        label="AIエージェントと対話をして気づいたことや感想を自由に記述してください。", height=150, max_chars=100
+        label="エージェントと対話をして気づいたことや感想を自由に記述してください。", height=150, max_chars=200
     )
-    specific_eval = f"食事頻度：{st.session_state.meal1_eval}\n栄養バランス：{st.session_state.meal2_eval}"
     #最終確認
     st.markdown("""
     ## :red[上にスクロールして、全てのアンケートに答えているかを確認してからボタンを押してください]
@@ -397,18 +392,15 @@ def dialogue_eval():
             "gender": st.session_state.gender,
             "age": st.session_state.age,
             "topic": st.session_state.topic,
+            "pre_survey": {
+                "frequency": int(st.session_state.meal1[0]),
+                "balance": int(st.session_state.meal2[0]),
+            },
+            "post_survey": {
+                "frequency": int(meal1_eval[0]),
+                "balance": int(meal2_eval[0]),
+            }
         }
-        # pre_surveyが「key : value」形式の複数行文字列なら辞書に変換
-        pre_survey_dict = {}
-        for line in st.session_state.pre_survey.splitlines():
-            if "：" in line:
-                key, value = line.split("：", 1)
-                try:
-                    num, label = value.split("：", 1)
-                    pre_survey_dict[key] = {"value": int(num), "label": label}
-                except ValueError:
-                    pre_survey_dict[key] = value
-        data.update(pre_survey_dict)
         dialogue = []
         for chat in st.session_state.chat_log[1:]:  # 最初の要素は除外
             chat_entry = {
@@ -420,19 +412,8 @@ def dialogue_eval():
                 chat_entry["natural"] = chat["natural"]
             dialogue.append(chat_entry)
         data["dialogue"] = dialogue
-        data["all_persuasive"] = st.session_state.persuasive
-        data["all_natural"] = st.session_state.natural
-        # specific_evalが「key : value」形式の複数行文字列なら辞書に変換
-        specific_eval_dict = {}
-        for line in specific_eval.splitlines():
-            if "：" in line:
-                key, value = line.split("：", 1)
-                try:
-                    num, label = value.split("：", 1)
-                    specific_eval_dict[key] = {"value": int(num), "label": label}
-                except ValueError:
-                    specific_eval_dict[key] = value
-        data.update(specific_eval_dict)
+        data["all_persuasive"] = persuasive
+        data["all_natural"] = natural
         data["自由記述"] = txt
         # 保存
         with open(f"data/{st.session_state.dt_now}.json", "w", encoding="utf-8") as f:
