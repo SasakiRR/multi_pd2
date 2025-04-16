@@ -164,7 +164,7 @@ def to_pd():
         st.session_state.persuadeeprompt2 = st.session_state.persuadeeprompt2.replace("{topic}", st.session_state.topic).replace("{user}", st.session_state.name)
         st.session_state.persuaderprompt = st.session_state.persuaderprompt.replace("{topic}", st.session_state.topic)
         if st.button("対話エージェントとの対話を始める"):
-            st.session_state.page_control = 2
+            st.session_state.page_control = 3
             st.rerun()
 
 # チャット画面の関数
@@ -193,7 +193,7 @@ def chat_system():
                     st.write(chat["msg"])
         # 対話エージェントの発話
         if st.session_state.turn == 1:
-            assistant2_msg = f"こんにちは！説得対話が始まる前に少し雑談をしましょう。"
+            assistant2_msg = f"こんにちは！対話エージェントです。説得対話が始まる前に私と少し雑談をしましょう!"
             with st.container(key = f"{ASSISTANT_NAME2}_10"):
                 with st.chat_message(ASSISTANT_NAME2, avatar=assistant2_icon):
                     st.write(assistant2_msg)
@@ -412,9 +412,9 @@ def dialogue_eval():
                 chat_entry["natural"] = chat["natural"]
             dialogue.append(chat_entry)
         data["dialogue"] = dialogue
-        data["all_persuasive"] = persuasive
-        data["all_natural"] = natural
-        data["自由記述"] = txt
+        data["all_persuasive"] = int(persuasive[0])
+        data["all_natural"] = int(natural[0])
+        data["free_writing"] = txt
         # 保存
         with open(f"data/{st.session_state.dt_now}.json", "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
