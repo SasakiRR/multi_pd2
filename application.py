@@ -341,9 +341,10 @@ def utterance_eval():
     st.write(
         "説得エージェントと対話エージェントとあなたのそれぞれの発話について、次の質問に答えてください。"
     )
-    for chat in st.session_state.chat_log[:13]:
-        chat["persuasive"] = " "
-        chat["natural"] = " "
+    for chat in st.session_state.chat_log[1:13]:
+        chat["persuasive"] = "0"
+        if chat["name"] != USER_NAME:
+            chat["natural"] = "0"
     for i, chat in enumerate(st.session_state.chat_log[13:], 1):
         if chat["name"] == ASSISTANT_NAME:
             st.write(f"説得エージェントの発話{i}")
@@ -410,22 +411,22 @@ def dialogue_eval():
             "post_survey": {
                 "frequency": int(meal1_eval[0]),
                 "balance": int(meal2_eval[0]),
-            }
+            },
+            "all_persuasive": int(persuasive[0]),
+            "all_natural": int(natural[0]),
+            "free_writing": txt
         }
         dialogue = []
-        for chat in st.session_state.chat_log:
+        for chat in st.session_state.chat_log[1:]:
             chat_entry = {
                 "speaker": chat["name"],
                 "message": chat["msg"],
-                "persuasive": chat["persuasive"][0]
+                "persuasive": int(chat["persuasive"][0])
             }
             if chat["name"] != USER_NAME:
-                chat_entry["natural"] = chat["natural"]
+                chat_entry["natural"] = int(chat["natural"][0])
             dialogue.append(chat_entry)
         data["dialogue"] = dialogue
-        data["all_persuasive"] = int(persuasive[0])
-        data["all_natural"] = int(natural[0])
-        data["free_writing"] = txt
         # 保存
         with open(f"data/{st.session_state.dt_now}.json", "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
