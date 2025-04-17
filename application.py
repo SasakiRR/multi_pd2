@@ -191,7 +191,7 @@ def chat_system():
                     st.write(chat["msg"])
         # 対話エージェントの発話
         if st.session_state.chat_log == []:
-            assistant2_msg = f"こんにちは！私は対話エージェントです。説得対話が始まる前に私と少し雑談をしましょう!"
+            assistant2_msg = f"こんにちは！私はAIのユウです。説得対話が始まる前に私と少し雑談をしましょう!"
             with st.container(key = f"{ASSISTANT_NAME2}_49"):
                 with st.chat_message(ASSISTANT_NAME2, avatar=assistant2_icon):
                     st.write(assistant2_msg)
