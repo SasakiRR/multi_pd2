@@ -160,7 +160,7 @@ def to_pd():
         st.session_state.persuadeeprompt0 = st.session_state.persuadeeprompt0.replace("{user}", st.session_state.name)
         st.session_state.persuadeeprompt1 = st.session_state.persuadeeprompt1.replace("{topic}", st.session_state.topic).replace("{user}", st.session_state.name)
         st.session_state.persuadeeprompt2 = st.session_state.persuadeeprompt2.replace("{topic}", st.session_state.topic).replace("{user}", st.session_state.name)
-        st.session_state.persuaderprompt = st.session_state.persuaderprompt.replace("{topic}", st.session_state.topic)
+        st.session_state.persuaderprompt = st.session_state.persuaderprompt.replace("{topic}", st.session_state.topic).replace("{user}", st.session_state.name)
         if st.button("対話エージェントとの対話を始める"):
             st.session_state.page_control = 2
             st.rerun()
@@ -222,7 +222,7 @@ def chat_system():
                     with st.chat_message(USER_NAME, avatar=user_icon):
                         st.write(user_msg)
                 st.session_state.chat_log.append({"name": USER_NAME, "msg": user_msg, "avatar": user_icon})
-                st.session_state.prompt_chat_log = st.session_state.prompt_chat_log + user_msg + "\n" + "説得エージェント："
+                st.session_state.prompt_chat_log = st.session_state.prompt_chat_log + user_msg + "\n" + "対話エージェント："
                 st.session_state.is_chat_input_disabled = True
                 st.session_state.turn += 1
                 st.rerun()
@@ -246,7 +246,7 @@ def chat_system():
                         assistant2_msg += chunk.choices[0].delta.content
                         assistant2_response_area.write(assistant2_msg)
             st.session_state.chat_log.append({"name": ASSISTANT_NAME2, "msg": assistant2_msg, "avatar": assistant2_icon})
-            st.session_state.prompt_chat_log = st.session_state.prompt_chat_log + assistant2_msg + "\n" + f"{st.session_state.name}："
+            st.session_state.prompt_chat_log = st.session_state.prompt_chat_log + assistant2_msg + "\n" + f"説得エージェント："
             # 最初の挨拶
             assistant_msg = f"こんにちは！お話の途中にすみませんが、今から{st.session_state.topic}の重要性についてお話をさせてもらおうと思います。"
             with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
