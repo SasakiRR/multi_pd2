@@ -124,31 +124,34 @@ def pre_survey():
     st.session_state.name = st.text_input("対話内で使用する名前を入力してください")
     st.session_state.meal1 = st.radio(
         label="普段どれくらいの頻度で1日に3食食べていますか？", 
-        options=["5：毎日", "4：週3〜4日程度", "3：週1〜2日程度", "2：月1〜2日程度", "1：ほとんどの日に3食食べない"], 
-        index=2
+        options=["6：無回答", "5：毎日", "4：週3〜4日程度", "3：週1〜2日程度", "2：月1〜2日程度", "1：ほとんどの日に3食食べない"], 
+        index=0
         )
     st.session_state.meal2 = st.radio(
         label="食事を取る際、栄養バランスを考えていますか？", 
-        options=["5：考えている", "4：少し考えている", "3：どちらとも言えない", "2：あまり考えていない", "1：考えていない"], 
-        index=2
+        options=["6：無回答", "5：考えている", "4：少し考えている", "3：どちらとも言えない", "2：あまり考えていない", "1：考えていない"], 
+        index=0
         )
     st.session_state.exercise = st.radio(
         label="1週間に何日くらい、20分以上の運動をしていますか？", 
-        options=["5：毎日", "4：週3〜4日程度", "3：週1〜2日程度", "2：月に2〜3日程度", "1：ほとんどしていない"], 
-        index=2
+        options=["6：無回答", "5：毎日", "4：週3〜4日程度", "3：週1〜2日程度", "2：月に2〜3日程度", "1：ほとんどしていない"], 
+        index=0
         )
     st.session_state.sleep = st.radio(
         label="1日の平均睡眠時間はどのくらいですか？", 
-        options=["5：7時間以上", "4：6〜7時間", "3：5〜6時間", "2：4〜5時間", "1：4時間未満"], 
-        index=2
+        options=["6：無回答", "5：7時間以上", "4：6〜7時間", "3：5〜6時間", "2：4〜5時間", "1：4時間未満"], 
+        index=0
         )
     st.session_state.cleaning = st.radio(
         label="普段部屋の掃除をどれくらいの頻度で行っていますか？（掃除とは整理整頓、ホコリ取りなどを含みます）", 
-        options=["5：ほぼ毎日", "4：週に2〜3回", "3：週に1回程度", "2：月に2〜3回程度", "1：月に1回以下"], 
-        index=2
+        options=["6：無回答", "5：ほぼ毎日", "4：週に2〜3回", "3：週に1回程度", "2：月に2〜3回程度", "1：月に1回以下"], 
+        index=0
         )
     # 提出ボタン
     if st.button("提出"):
+        if int(st.session_state.meal1[0]) == 6 or int(st.session_state.meal2[0]) == 6 or int(st.session_state.exercise[0]) == 6 or int(st.session_state.sleep[0]) == 6 or int(st.session_state.cleaning[0]) == 6:
+            st.write(":red[無回答の質問があります。全ての質問に答えてください。]")
+            st.stop()
         st.session_state.page_control = 1
         st.rerun()
 
