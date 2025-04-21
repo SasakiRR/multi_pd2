@@ -2,6 +2,7 @@ import os
 import time
 import pytz
 import json
+import random
 import datetime
 import numpy as np
 from PIL import Image
@@ -49,17 +50,21 @@ if "meal1" not in st.session_state:
     st.session_state.meal1 = ""
 if "meal2" not in st.session_state:
     st.session_state.meal2 = ""
+if "exercise" not in st.session_state:
+    st.session_state.exercise = ""
+if "sleep" not in st.session_state:
+    st.session_state.sleep = ""
+if "cleaning" not in st.session_state:
+    st.session_state.cleaning = ""
 
 # 表示用チャットログの初期化
 if "chat_log" not in st.session_state:
     st.session_state.chat_log = []
 
-# 説得者プロンプトの初期化
+# プロンプトの初期化
 if "persuaderprompt" not in st.session_state:
     with open(PERSUADER_PROMPTFILE, "r") as f:
         st.session_state.persuaderprompt = f.read()
-
-# 被説得者プロンプトの初期化
 if "persuadeeprompt0" not in st.session_state:
     with open(PERSUADEE_PROMPTFILE0, "r") as f:
         st.session_state.persuadeeprompt0 = f.read()
@@ -106,9 +111,9 @@ def response_chatgpt(prompt: str):
 
 # 事前アンケートの関数
 def pre_survey():
-    st.title("生活習慣に関するアンケート")
+    st.title("事前アンケート")
     st.write(
-        "以下の生活習慣に関するアンケート全てに答えてください。"
+        "以下のアンケート全てに答えてください。"
     )
     st.session_state.gender = st.radio(
         label="あなたの性別を教えてください", 
@@ -119,12 +124,27 @@ def pre_survey():
     st.session_state.name = st.text_input("対話内で使用する名前を入力してください")
     st.session_state.meal1 = st.radio(
         label="普段どれくらいの頻度で1日に3食食べていますか？", 
-        options=["5：毎日", "4：週に3〜4回程度", "3：週に1〜2回程度", "2：月に1〜2回程度", "1：ほとんどの日に3食食べない"], 
+        options=["5：毎日", "4：週3〜4日程度", "3：週1〜2日程度", "2：月1〜2日程度", "1：ほとんどの日に3食食べない"], 
         index=2
         )
     st.session_state.meal2 = st.radio(
         label="食事を取る際、栄養バランスを考えていますか？", 
         options=["5：考えている", "4：少し考えている", "3：どちらとも言えない", "2：あまり考えていない", "1：考えていない"], 
+        index=2
+        )
+    st.session_state.exercise = st.radio(
+        label="1週間に何日くらい、20分以上の運動をしていますか？", 
+        options=["5：毎日", "4：週3〜4日程度", "3：週1〜2日程度", "2：月に2〜3日程度", "1：ほとんどしていない"], 
+        index=2
+        )
+    st.session_state.sleep = st.radio(
+        label="1日の平均睡眠時間はどのくらいですか？", 
+        options=["5：7時間以上", "4：6〜7時間", "3：5〜6時間", "2：4〜5時間", "1：4時間未満"], 
+        index=2
+        )
+    st.session_state.cleaning = st.radio(
+        label="普段部屋の掃除をどれくらいの頻度で行っていますか？（掃除とは整理整頓、ホコリ取りなどを含みます）", 
+        options=["5：ほぼ毎日", "4：週に2〜3回", "3：週に1回程度", "2：月に2〜3回程度", "1：月に1回以下"], 
         index=2
         )
     # 提出ボタン
@@ -156,8 +176,20 @@ def to_pd():
         )
         st.write(
             "この対話では途中から説得エージェントが合流し、あなたと対話エージェントに対して説得を行います。"
-        )   
-        st.session_state.persuadeeprompt0 = st.session_state.persuadeeprompt0.replace("{user}", st.session_state.name)
+        )
+        z_topic_list = [int(st.session_state.exercise[0]), int(st.session_state.sleep[0]), int(st.session_state.cleaning[0])]
+        min_val = min(z_topic_list)
+        min_indices = [i for i, v in enumerate(z_topic_list) if v == min_val]
+        chosen_index = random.choice(min_indices)
+        if chosen_index == 0:
+            ztopic = "　- 運動・体を動かす習慣（散歩、ストレッチ、軽い運動など）\n　- 最近やってみた運動や体を動かす機会"
+        elif chosen_index == 1:
+            ztopic = "　- 睡眠習慣について（睡眠時間、質、寝る時間など）\n　- 最近の睡眠リズムの変化（寝不足、よく眠れた など）"
+        elif chosen_index == 2:
+            ztopic = "　- ちょっとした片付けの習慣（ホコリ取り、整理整頓など）\n　- 掃除のタイミングや気分（スッキリした、面倒くさい など）"
+        if st.session_state.name == "":
+            st.session_state.name = "ユーザ"
+        st.session_state.persuadeeprompt0 = st.session_state.persuadeeprompt0.replace("{user}", st.session_state.name).replace("{ztopic}", ztopic)
         st.session_state.persuadeeprompt1 = st.session_state.persuadeeprompt1.replace("{topic}", st.session_state.topic).replace("{user}", st.session_state.name)
         st.session_state.persuadeeprompt2 = st.session_state.persuadeeprompt2.replace("{topic}", st.session_state.topic).replace("{user}", st.session_state.name)
         st.session_state.persuaderprompt = st.session_state.persuaderprompt.replace("{topic}", st.session_state.topic).replace("{user}", st.session_state.name)
