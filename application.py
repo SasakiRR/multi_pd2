@@ -109,11 +109,26 @@ def response_chatgpt(prompt: str):
     )
     return response
 
+# 説得度評価の練習用ページの関数
+def practice():
+    st.title("説得度評価の練習")
+    st.write(
+        "このページでは、対話エージェントが説得されているかの評価の練習を行います。"
+    )
+    st.write(
+        "以下の質問に答えてください。"
+    )
+    st.write(
+        "あなたから見て、対話エージェントは発話{を行った時点で説得を受け入れていた",)
+    answer = st.radio("あなたから見て、対話エージェントは発話を行った時点で説得を受け入れていた", ["5：同意できる（その時点で説得を受け入れ、生活習慣を改善しようと考えている）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（その時点では説得を受け入れておらず、生活習慣を改善しようとは考えていない）"], index=2)
+    st.session_state.page_control = 1
+    st.rerun()
+
 # 事前アンケートの関数
 def pre_survey():
     st.title("事前アンケート")
     st.write(
-        "以下のアンケート全てに答えてください。"
+        "以下のアンケート全てに答えてください。（無回答が存在すると先に進めません）"
     )
     st.session_state.gender = st.radio(
         label="あなたの性別を教えてください", 
@@ -147,12 +162,14 @@ def pre_survey():
         options=["6：無回答", "5：ほぼ毎日", "4：週に2〜3回", "3：週に1回程度", "2：月に2〜3回程度", "1：月に1回以下"], 
         index=0
         )
+    #最終確認
+    st.markdown("## :red[上にスクロールして、全てのアンケートに答えているかを確認してからボタンを押してください]")
     # 提出ボタン
     if st.button("提出"):
         if int(st.session_state.meal1[0]) == 6 or int(st.session_state.meal2[0]) == 6 or int(st.session_state.exercise[0]) == 6 or int(st.session_state.sleep[0]) == 6 or int(st.session_state.cleaning[0]) == 6:
             st.write(":red[無回答の質問があります。全ての質問に答えてください。]")
             st.stop()
-        st.session_state.page_control = 1
+        st.session_state.page_control = 2
         st.rerun()
 
 # トピック表示の関数
@@ -197,7 +214,7 @@ def to_pd():
         st.session_state.persuadeeprompt2 = st.session_state.persuadeeprompt2.replace("{topic}", st.session_state.topic).replace("{user}", st.session_state.name)
         st.session_state.persuaderprompt = st.session_state.persuaderprompt.replace("{topic}", st.session_state.topic).replace("{user}", st.session_state.name)
         if st.button("対話エージェントとの対話を始める"):
-            st.session_state.page_control = 2
+            st.session_state.page_control = 3
             st.rerun()
 
 # チャット画面の関数
@@ -350,7 +367,7 @@ def chat_system():
                     st.write("規定のターンが経過したので、説得対話は終了しました。")
                     st.write("下のボタンをクリックして、発話評価に進んでください。")
                     if st.button("評価を開始"):
-                        st.session_state.page_control = 3
+                        st.session_state.page_control = 4
                         st.rerun()
                 else:
                     response = response_chatgpt(st.session_state.persuaderprompt + st.session_state.prompt_chat_log)
@@ -374,7 +391,7 @@ def chat_system():
 def utterance_eval():
     st.title("発話ごとの評価")
     st.write(
-        "説得エージェントと対話エージェントとあなたのそれぞれの発話について、次の質問に答えてください。"
+        "説得エージェントと対話エージェントとあなたのそれぞれの発話について、次の質問に答えてください。（無回答が存在すると先に進めません）"
     )
     for chat in st.session_state.chat_log[1:13]:
         chat["persuasive"] = "0"
@@ -384,55 +401,69 @@ def utterance_eval():
         if chat["name"] == ASSISTANT_NAME:
             st.write(f"説得エージェントの発話{i}")
             st.write("「" + chat["msg"] + "」")
-            chat["persuasive"] = st.radio(f"説得エージェントの発話{i}は説得力がある", ["5：同意できる（説得力がある）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（説得力がない）"], index=2)
-            chat["natural"] = st.radio(f"説得エージェントの発話{i}は応答として自然である", ["5：同意できる（自然である）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（不自然である）"], index=2)
+            chat["persuasive"] = st.radio(f"説得エージェントの発話{i}は説得力がある", ["6：無回答", "5：同意できる（説得力がある）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（説得力がない）"], index=0)
+            chat["natural"] = st.radio(f"説得エージェントの発話{i}は応答として自然である", ["6：無回答", "5：同意できる（自然である）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（不自然である）"], index=0)
         elif chat["name"] == ASSISTANT_NAME2:
             st.write(f"対話エージェントの発話{i}")
             st.write("「" + chat["msg"] + "」")
-            chat["persuasive"] = st.radio(f"あなたから見て、対話エージェントは発話{i}を行った時点で説得を受け入れていた", ["5：同意できる（その時点で説得を受け入れ、生活習慣を改善しようと考えている）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（その時点では説得を受け入れておらず、生活習慣を改善しようとは考えていない）"], index=2)
-            chat["natural"] = st.radio(f"対話エージェントの発話{i}は応答として自然である", ["5：同意できる（自然である）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（不自然である）"], index=2)
+            chat["persuasive"] = st.radio(f"あなたから見て、対話エージェントは発話{i}を行った時点で説得を受け入れていた", ["6：無回答", "5：同意できる（その時点で説得を受け入れ、生活習慣を改善しようと考えている）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（その時点では説得を受け入れておらず、生活習慣を改善しようとは考えていない）"], index=0)
+            chat["natural"] = st.radio(f"対話エージェントの発話{i}は応答として自然である", ["6：無回答", "5：同意できる（自然である）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（不自然である）"], index=0)
         else:
             st.write(f"あなたの発話{i}")
             st.write("「" + chat["msg"] + "」")
-            chat["persuasive"] = st.radio(f"あなたは発話{i}を行った時点で説得を受け入れていた", ["5：同意できる（その時点で説得を受け入れ、生活習慣を改善しようと考えている）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（その時点では説得を受け入れておらず、生活習慣を改善しようとは考えていない）"], index=2)
+            chat["persuasive"] = st.radio(f"あなたは発話{i}を行った時点で説得を受け入れていた", ["6：無回答", "5：同意できる（その時点で説得を受け入れ、生活習慣を改善しようと考えている）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（その時点では説得を受け入れておらず、生活習慣を改善しようとは考えていない）"], index=0)
     #最終確認
-    st.markdown("""
-    ## :red[上にスクロールして、全てのアンケートに答えているかを確認してからボタンを押してください]
-    """)
+    st.markdown("## :red[上にスクロールして、全てのアンケートに答えているかを確認してからボタンを押してください]")
     if st.button("対話全体の評価に進む"):
-        st.session_state.page_control = 4
+        for chat in st.session_state.chat_log[13:]:
+            if int(chat["persuasive"][0]) == 6:
+                st.write(":red[無回答の質問があります。全ての質問に答えてください。]")
+                st.stop()
+            elif chat["name"] != USER_NAME and int(chat["natural"][0]) == 6:
+                st.write(":red[無回答の質問があります。全ての質問に答えてください。]")
+                st.stop()
+        st.session_state.page_control = 5
         st.rerun()
 
 # 対話全体の評価
 def dialogue_eval():
     st.title("対話全体の評価")
     st.write(
-        "今回の対話全体を考慮して説得エージェントについて、次の質問に答えてください。"
+        "今回の対話全体を考慮して説得エージェントについて、次の質問に答えてください。（無回答が存在すると先に進めません）"
     )
     # 説得力
-    persuasive = st.radio("この説得エージェントは説得力がある", ["5：同意できる（説得力がある）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（説得力がない）"], index=2)
+    persuasive = st.radio(
+        label="この説得エージェントは説得力がある", 
+        options=["6：無回答", "5：同意できる（説得力がある）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（説得力がない）"], 
+        index=0
+        )
     # 自然さ
-    natural = st.radio("この説得エージェントの応答は自然である", ["5：同意できる（自然である）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（不自然である）"], index=2)
+    natural = st.radio(
+        label="この説得エージェントの応答は自然である", 
+        options=["6：無回答", "5：同意できる（自然である）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（不自然である）"], 
+        index=0
+        )
     # 具体的な説得力の評価
     meal1_eval = st.radio(
         label="今後どれくらいの頻度で1日に3食食べたいたいと思いますか？", 
-        options=["5：毎日", "4：週に3〜4回程度", "3：週に1〜2回程度", "2：月に1〜2回程度", "1：ほとんどの日に3食食べない"], 
-        index=2
+        options=["6：無回答", "5：毎日", "4：週に3〜4回程度", "3：週に1〜2回程度", "2：月に1〜2回程度", "1：ほとんどの日に3食食べない"], 
+        index=0
         )
     meal2_eval = st.radio(
         label="今後食事を取る際、栄養バランスを考えたいと思いますか？", 
-        options=["5：思う", "4：少し思う", "3：どちらとも言えない", "2：あまり思わない", "1：思わない"], 
-        index=2
+        options=["6：無回答", "5：思う", "4：少し思う", "3：どちらとも言えない", "2：あまり思わない", "1：思わない"], 
+        index=0
         )
     txt = st.text_area(
         label="エージェントと対話をして気づいたことや感想を自由に記述してください。", height=150, max_chars=200
     )
     #最終確認
-    st.markdown("""
-    ## :red[上にスクロールして、全てのアンケートに答えているかを確認してからボタンを押してください]
-    """)
+    st.markdown("## :red[上にスクロールして、全てのアンケートに答えているかを確認してからボタンを押してください]")
     # 終了ボタン
     if st.button("評価を終了"):
+        if int(persuasive[0]) == 6 or int(natural[0]) == 6 or int(meal1_eval[0]) == 6 or int(meal2_eval[0]) == 6:
+            st.write(":red[無回答の質問があります。全ての質問に答えてください。]")
+            st.stop()
         st.session_state.dt_now = datetime.datetime.now(pytz.timezone('Asia/Tokyo')).isoformat()
         data = {
             "date": st.session_state.dt_now,
@@ -465,7 +496,7 @@ def dialogue_eval():
         # 保存
         with open(f"data/{st.session_state.dt_now}.json", "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
-        st.session_state.page_control = 5
+        st.session_state.page_control = 6
         st.rerun()
 
 def finish():
@@ -480,14 +511,16 @@ def finish():
 
 #ページの管理
 if st.session_state.page_control == 0:
-    pre_survey()
+    practice()
 elif st.session_state.page_control == 1:
-    to_pd()
+    pre_survey()
 elif st.session_state.page_control == 2:
-    chat_system()
+    to_pd()
 elif st.session_state.page_control == 3:
-    utterance_eval()
+    chat_system()
 elif st.session_state.page_control == 4:
-    dialogue_eval()
+    utterance_eval()
 elif st.session_state.page_control == 5:
+    dialogue_eval()
+elif st.session_state.page_control == 6:
     finish()
