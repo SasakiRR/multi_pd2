@@ -112,17 +112,347 @@ def response_chatgpt(prompt: str):
 # 説得度評価の練習用ページの関数
 def practice():
     st.title("説得度評価の練習")
+    st.markdown(
+        "ピンクのアイコンの対話エージェントが説得されているか基準を明確化するため、評価の練習を行います。  \n次の基準を確認して、10個の質問に答えてください。"
+    )
+    st.markdown(
+        "**5：「完全に同意」エージェントが説得内容を受け入れた意思を表明している**"
+    )
+    st.markdown(
+        "**4：「やや同意」内容にはある程度納得し、改善の意志は見えるがやや曖昧な表現が使われている**"
+    )
+    st.markdown(
+        "**3：「中立」情報に対して興味や理解は示すが、明確な同意も否定もしないか、態度が不明確**"
+    )
+    st.markdown(
+        "**2：「やや不同意」内容に対して否定的な反応が見られ、改善する意思が弱いか、一部は理解するが、実行の意思はない**"
+    )
+    st.markdown(
+        "**1：「完全に不同意」内容に明確に反対するか、改善する意志を完全に拒否**"
+    )
+    answer = ["" for i in range(10)]
+    score = 0
     st.write(
-        "このページでは、対話エージェントが説得されているかの評価の練習を行います。"
+        "練習問題1"
+        )
+    with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
+        st.write(
+            "歩くことは誰でもできる運動で、たとえ10分だけでも血糖値のコントロールや脳の活性化に良い影響があるとされています。まずは通勤中に一駅分歩いてみるのはどうでしょう？"
+            )
+    with st.chat_message(ASSISTANT_NAME2, avatar=assistant2_icon):
+        st.write(
+            "うーん、一駅分歩くのは面倒だし、朝はギリギリでバタバタしてるからちょっと出来そうにないですね。"
+            )
+    answer[0] = st.radio(
+        "練習問題1において対話エージェントは発話を行った時点で説得を受け入れていた",
+        ["6：無回答", "5：同意できる", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない"],
+        index=0)#1
+    if int(answer[0][0]) < 3: score += 1
+    st.write(
+        "練習問題2"
+        )
+    with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
+        st.write(
+            "仕事が忙しくて運動する時間が取れない方も多いですが、実は階段を使うなどのちょっとした工夫で、1日の活動量はぐっと増えます。今の生活に無理なく取り入れられる工夫から始めてみませんか？"
+            )
+    with st.chat_message(ASSISTANT_NAME2, avatar=assistant2_icon):
+        st.write(
+            "確かにエレベーター使うのが当たり前になってましたけど、階段ならすぐ試せそうです。明日から意識してみます。"
+            )
+    answer[1] = st.radio(
+        "練習問題2において対話エージェントは発話を行った時点で説得を受け入れていた",
+        ["6：無回答", "5：同意できる", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない"],
+        index=0)#5
+    if int(answer[1][0]) > 3: score += 1
+    st.write(
+        "練習問題3"
+        )
+    with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
+        st.write(
+            "動画を見ながらの運動なら、自分のペースで無理なくできるので忙しい方にもぴったりです。1本5分のものもありますよ。"
+            )
+    with st.chat_message(ASSISTANT_NAME2, avatar=assistant2_icon):
+        st.write(
+            "運動のために動画を見るのは面倒に感じるうえに、動画サイトを見てると運動しようって気持ちにならない気がします。"
+            )
+    answer[2] = st.radio(
+        "練習問題3において対話エージェントは発話を行った時点で説得を受け入れていた",
+        ["6：無回答", "5：同意できる", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない"],
+        index=0)#1
+    if int(answer[2][0]) < 3: score += 1
+    st.write(
+        "練習問題4"
+        )
+    with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
+        st.write(
+            "1日10分の軽い体操でも肩こりや気分のリフレッシュに効果があると言われています。習慣化すれば自然と気分も整ってくるので、まずは朝の準備前など、生活に取り入れてみませんか？"
+            )
+    with st.chat_message(ASSISTANT_NAME2, avatar=assistant2_icon):
+        st.write(
+            "なるほど、朝の準備前なら無理なくできそうですね。まずはストレッチだけでも毎日やってみようと思います。"
+            )
+    answer[3] = st.radio(
+        "練習問題4において対話エージェントは発話を行った時点で説得を受け入れていた",
+        ["6：無回答", "5：同意できる", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない"],
+        index=0)#5
+    if int(answer[3][0]) > 3: score += 1
+    st.write(
+        "練習問題5"
+        )
+    with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
+        st.write(
+            "無理なく続けるのが大事なので、まずは“ながら運動”からで大丈夫ですよ。"
+            )
+    with st.chat_message(ASSISTANT_NAME2, avatar=assistant2_icon):
+        st.write(
+            "それなら歯磨き中のスクワットとかから始めてみようかな。続けられそうですし。"
+            )
+    answer[4] = st.radio(
+        "練習問題5において対話エージェントは発話を行った時点で説得を受け入れていた",
+        ["6：無回答", "5：同意できる", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない"],
+        index=0)#5
+    if int(answer[4][0]) > 3: score += 1
+    st.write(
+        "練習問題6"
+        )
+    with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
+        st.write(
+            "少しの工夫で生活に運動を取り入れることは可能ですし、健康への効果も積み重なっていきます。今の自分の体を守るためにも、一緒に考えてみませんか？"
+            )
+    with st.chat_message(ASSISTANT_NAME2, avatar=assistant2_icon):
+        st.write(
+            "健康のことは分かってるつもりなんですけど、運動ってやっぱり嫌いなのでやる気になれないです。"
+            )
+    answer[5] = st.radio(
+        "練習問題6において対話エージェントは発話を行った時点で説得を受け入れていた",
+        ["6：無回答", "5：同意できる", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない"],
+        index=0)#1
+    if int(answer[5][0]) < 3: score += 1
+    st.write(
+        "練習問題7"
+        )
+    with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
+        st.write(
+            "疲れていると運動するのも面倒に感じますが、逆に軽い運動をすることでストレスが軽減されて、結果的に気分がスッキリするという研究もあります。気分転換のつもりで5分だけ体を動かしてみませんか？"
+            )
+    with st.chat_message(ASSISTANT_NAME2, avatar=assistant2_icon):
+        st.write(
+            "確かに気分転換は必要と思ってたので、5分くらいならやってみようかな。最近は座りっぱなしでいることが多くて疲れが溜まってたので。"
+            )
+    answer[6] = st.radio(
+        "練習問題7において対話エージェントは発話を行った時点で説得を受け入れていた",
+        ["6：無回答", "5：同意できる", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない"],
+        index=0)#5
+    if int(answer[6][0]) > 3: score += 1
+    st.write(
+        "練習問題8"
+        )
+    with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
+        st.write(
+            "たとえば1日5分のラジオ体操でも、筋肉がほぐれて血流が良くなると言われています。特に運動不足が気になっている方には効果的なので、まずは試してみてはいかがでしょうか？"
+            )
+    with st.chat_message(ASSISTANT_NAME2, avatar=assistant2_icon):
+        st.write(
+            "正直1日に5分程度で自覚できるほど変わると思えないし、やる気も出ないです。"
+            )
+    answer[7] = st.radio(
+        "練習問題8において対話エージェントは発話を行った時点で説得を受け入れていた",
+        ["6：無回答", "5：同意できる", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない"],
+        index=0)#1
+    if int(answer[7][0]) < 3: score += 1
+    st.write(
+        "練習問題9"
+        )
+    with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
+        st.write(
+            "運動が苦手でも、ストレッチやヨガのようにリラックスしながらできるものから始めれば、心身ともに整いますよ。"
+            )
+    with st.chat_message(ASSISTANT_NAME2, avatar=assistant2_icon):
+        st.write(
+            "ヨガとか、素人の知識でやっても効果がでなそうな気がするし、運動でリラックスできるとはあまり思えません。"
+            )
+    answer[8] = st.radio(
+        "練習問題9において対話エージェントは発話を行った時点で説得を受け入れていた",
+        ["6：無回答", "5：同意できる", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない"],
+        index=0)#1
+    if int(answer[8][0]) < 3: score += 1
+    st.write(
+        "練習問題10"
+        )
+    with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
+        st.write(
+            "週に1回でも軽く体を動かす日を作るだけで、睡眠の質が上がったり、姿勢がよくなったりという効果があります。完璧じゃなくても、まずは“動く習慣”を意識してみるのが大切です。"
+            )
+    with st.chat_message(ASSISTANT_NAME2, avatar=assistant2_icon):
+        st.write(
+            "そんなに変わるなら、ちょっとやってみたくなりました。とりあえず週末に散歩から始めてみます。"
+            )
+    answer[9] = st.radio(
+        "練習問題10において対話エージェントは発話を行った時点で説得を受け入れていた",
+        ["6：無回答", "5：同意できる", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない"],
+        index=0)#5
+    if int(answer[9][0]) > 3: score += 1
+    # 提出ボタン
+    if st.button("解答を完了"):
+        for i in range(10):
+            if int(answer[i][0]) == 6:
+                st.write(":red[無回答の質問があります。全ての質問に答えてください。]")
+                st.stop()
+        if score > 6:
+            st.session_state.page_control = 1
+            st.rerun()
+        else:
+            st.write(":red[正解数が基準に達していません。もう一度評価基準を確認して質問に回答してください。]")
+
+# 説得度評価の解答用ページの関数
+def answer():
+    st.title("説得度評価の練習")
+    st.markdown(
+        "正解率が基準に達したため、解答と解説を確認してから先に進んでください"
     )
     st.write(
-        "以下の質問に答えてください。"
-    )
+        "練習問題1"
+        )
+    with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
+        st.write(
+            "歩くことは誰でもできる運動で、たとえ10分だけでも血糖値のコントロールや脳の活性化に良い影響があるとされています。まずは通勤中に一駅分歩いてみるのはどうでしょう？"
+            )
+    with st.chat_message(ASSISTANT_NAME2, avatar=assistant2_icon):
+        st.write(
+            "うーん、一駅分歩くのは面倒だし、朝はギリギリでバタバタしてるからちょっと出来そうにないですね。"
+            )
     st.write(
-        "あなたから見て、対話エージェントは発話{を行った時点で説得を受け入れていた",)
-    answer = st.radio("あなたから見て、対話エージェントは発話を行った時点で説得を受け入れていた", ["5：同意できる（その時点で説得を受け入れ、生活習慣を改善しようと考えている）", "4：やや同意できる", "3：どちらでもない", "2：やや同意できない", "1：同意できない（その時点では説得を受け入れておらず、生活習慣を改善しようとは考えていない）"], index=2)
-    st.session_state.page_control = 1
-    st.rerun()
+        "**現実的な障害を理由に提案を完全に拒否しており、説得の効果は見られないため、説得されていない**"
+        )
+    st.write(
+        "練習問題2"
+        )
+    with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
+        st.write(
+            "仕事が忙しくて運動する時間が取れない方も多いですが、実は階段を使うなどのちょっとした工夫で、1日の活動量はぐっと増えます。今の生活に無理なく取り入れられる工夫から始めてみませんか？"
+            )
+    with st.chat_message(ASSISTANT_NAME2, avatar=assistant2_icon):
+        st.write(
+            "確かにエレベーター使うのが当たり前になってましたけど、階段ならすぐ試せそうです。明日から意識してみます。"
+            )
+    st.write(
+        "**提案された方法に納得し、具体的に「明日から」と言っていることから、受け入れの度合いが高いため、説得されている**"
+        )
+    st.write(
+        "練習問題3"
+        )
+    with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
+        st.write(
+            "動画を見ながらの運動なら、自分のペースで無理なくできるので忙しい方にもぴったりです。1本5分のものもありますよ。"
+            )
+    with st.chat_message(ASSISTANT_NAME2, avatar=assistant2_icon):
+        st.write(
+            "運動のために動画を見るのは面倒に感じるうえに、動画サイトを見てると運動しようって気持ちにならない気がします。"
+            )
+    st.write(
+        "**行動の第一歩に対しても拒否的で、説得内容に対する前向きな兆しが見えないため、説得されていない**"
+        )
+    st.write(
+        "練習問題4"
+        )
+    with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
+        st.write(
+            "1日10分の軽い体操でも肩こりや気分のリフレッシュに効果があると言われています。習慣化すれば自然と気分も整ってくるので、まずは朝の準備前など、生活に取り入れてみませんか？"
+            )
+    with st.chat_message(ASSISTANT_NAME2, avatar=assistant2_icon):
+        st.write(
+            "なるほど、朝の準備前なら無理なくできそうですね。まずはストレッチだけでも毎日やってみようと思います。"
+            )
+    st.write(
+        "**相手の提案を受け入れ、自ら明日から始めると具体的に述べているため、説得されている**"
+        )
+    st.write(
+        "練習問題5"
+        )
+    with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
+        st.write(
+            "無理なく続けるのが大事なので、まずは“ながら運動”からで大丈夫ですよ。"
+            )
+    with st.chat_message(ASSISTANT_NAME2, avatar=assistant2_icon):
+        st.write(
+            "それなら歯磨き中のスクワットとかから始めてみようかな。続けられそうですし。"
+            )
+    st.write(
+        "**“ながら運動”という提案を自分に合う形で取り入れようとしているため、説得されている**"
+        )
+    st.write(
+        "練習問題6"
+        )
+    with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
+        st.write(
+            "少しの工夫で生活に運動を取り入れることは可能ですし、健康への効果も積み重なっていきます。今の自分の体を守るためにも、一緒に考えてみませんか？"
+            )
+    with st.chat_message(ASSISTANT_NAME2, avatar=assistant2_icon):
+        st.write(
+            "健康のことは分かってるつもりなんですけど、運動ってやっぱり嫌いなのでやる気になれないです。"
+            )
+    st.write(
+        "**健康の重要性は認識していても、運動への拒否感が強く、説得されていない**"
+        )
+    st.write(
+        "練習問題7"
+        )
+    with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
+        st.write(
+            "疲れていると運動するのも面倒に感じますが、逆に軽い運動をすることでストレスが軽減されて、結果的に気分がスッキリするという研究もあります。気分転換のつもりで5分だけ体を動かしてみませんか？"
+            )
+    with st.chat_message(ASSISTANT_NAME2, avatar=assistant2_icon):
+        st.write(
+            "確かに気分転換は必要と思ってたので、5分くらいならやってみようかな。最近は座りっぱなしでいることが多くて疲れが溜まってたので。"
+            )
+    st.write(
+        "**説得の内容を肯定し、動機づけとして自身の状況とも結びつけているため、説得されている**"
+        )
+    st.write(
+        "練習問題8"
+        )
+    with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
+        st.write(
+            "たとえば1日5分のラジオ体操でも、筋肉がほぐれて血流が良くなると言われています。特に運動不足が気になっている方には効果的なので、まずは試してみてはいかがでしょうか？"
+            )
+    with st.chat_message(ASSISTANT_NAME2, avatar=assistant2_icon):
+        st.write(
+            "正直1日に5分程度で自覚できるほど変わると思えないし、やる気も出ないです。"
+            )
+    st.write(
+        "**提案された方法の効果に懐疑的で、実行する気もまったく示していないため、説得されていない**"
+        )
+    st.write(
+        "練習問題9"
+        )
+    with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
+        st.write(
+            "運動が苦手でも、ストレッチやヨガのようにリラックスしながらできるものから始めれば、心身ともに整いますよ。"
+            )
+    with st.chat_message(ASSISTANT_NAME2, avatar=assistant2_icon):
+        st.write(
+            "ヨガとか、素人の知識でやっても効果がでなそうな気がするし、運動でリラックスできるとはあまり思えません。"
+            )
+    st.write(
+        "**やる行為そのものを否定しており、その効果についても懐疑的であるため、説得されていない**"
+        )
+    st.write(
+        "練習問題10"
+        )
+    with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
+        st.write(
+            "週に1回でも軽く体を動かす日を作るだけで、睡眠の質が上がったり、姿勢がよくなったりという効果があります。完璧じゃなくても、まずは“動く習慣”を意識してみるのが大切です。"
+            )
+    with st.chat_message(ASSISTANT_NAME2, avatar=assistant2_icon):
+        st.write(
+            "そんなに変わるなら、ちょっとやってみたくなりました。とりあえず週末に散歩から始めてみます。"
+            )
+    st.write(
+        "**運動の効果に興味を持ち、自発的に「週末に散歩」と具体的なアクションを宣言しているため、説得されている**"
+        )
+    if st.button("確認完了"):
+        st.session_state.page_control = 2
+        st.rerun()
 
 # 事前アンケートの関数
 def pre_survey():
@@ -169,7 +499,7 @@ def pre_survey():
         if int(st.session_state.meal1[0]) == 6 or int(st.session_state.meal2[0]) == 6 or int(st.session_state.exercise[0]) == 6 or int(st.session_state.sleep[0]) == 6 or int(st.session_state.cleaning[0]) == 6:
             st.write(":red[無回答の質問があります。全ての質問に答えてください。]")
             st.stop()
-        st.session_state.page_control = 2
+        st.session_state.page_control = 3
         st.rerun()
 
 # トピック表示の関数
@@ -214,7 +544,7 @@ def to_pd():
         st.session_state.persuadeeprompt2 = st.session_state.persuadeeprompt2.replace("{topic}", st.session_state.topic).replace("{user}", st.session_state.name)
         st.session_state.persuaderprompt = st.session_state.persuaderprompt.replace("{topic}", st.session_state.topic).replace("{user}", st.session_state.name)
         if st.button("対話エージェントとの対話を始める"):
-            st.session_state.page_control = 3
+            st.session_state.page_control = 4
             st.rerun()
 
 # チャット画面の関数
@@ -367,7 +697,7 @@ def chat_system():
                     st.write("規定のターンが経過したので、説得対話は終了しました。")
                     st.write("下のボタンをクリックして、発話評価に進んでください。")
                     if st.button("評価を開始"):
-                        st.session_state.page_control = 4
+                        st.session_state.page_control = 5
                         st.rerun()
                 else:
                     response = response_chatgpt(st.session_state.persuaderprompt + st.session_state.prompt_chat_log)
@@ -392,6 +722,24 @@ def utterance_eval():
     st.title("発話ごとの評価")
     st.write(
         "説得エージェントと対話エージェントとあなたのそれぞれの発話について、次の質問に答えてください。（無回答が存在すると先に進めません）"
+    )
+    st.write(
+        "説得されているかどうかの評価は次の基準を参考にしてください。"
+    )
+    st.markdown(
+        "**5：「完全に同意」エージェントが説得内容を受け入れた意思を表明している**"
+    )
+    st.markdown(
+        "**4：「やや同意」内容にはある程度納得し、改善の意志は見えるがやや曖昧な表現が使われている**"
+    )
+    st.markdown(
+        "**3：「中立」情報に対して興味や理解は示すが、明確な同意も否定もしないか、態度が不明確**"
+    )
+    st.markdown(
+        "**2：「やや不同意」内容に対して否定的な反応が見られ、改善する意思が弱いか、一部は理解するが、実行の意思はない**"
+    )
+    st.markdown(
+        "**1：「完全に不同意」内容に明確に反対するか、改善する意志を完全に拒否**"
     )
     for chat in st.session_state.chat_log[1:13]:
         chat["persuasive"] = "0"
@@ -422,7 +770,7 @@ def utterance_eval():
             elif chat["name"] != USER_NAME and int(chat["natural"][0]) == 6:
                 st.write(":red[無回答の質問があります。全ての質問に答えてください。]")
                 st.stop()
-        st.session_state.page_control = 5
+        st.session_state.page_control = 6
         st.rerun()
 
 # 対話全体の評価
@@ -496,7 +844,7 @@ def dialogue_eval():
         # 保存
         with open(f"data/{st.session_state.dt_now}.json", "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
-        st.session_state.page_control = 6
+        st.session_state.page_control = 7
         st.rerun()
 
 def finish():
@@ -513,14 +861,16 @@ def finish():
 if st.session_state.page_control == 0:
     practice()
 elif st.session_state.page_control == 1:
-    pre_survey()
+    answer()
 elif st.session_state.page_control == 2:
-    to_pd()
+    pre_survey()
 elif st.session_state.page_control == 3:
-    chat_system()
+    to_pd()
 elif st.session_state.page_control == 4:
-    utterance_eval()
+    chat_system()
 elif st.session_state.page_control == 5:
-    dialogue_eval()
+    utterance_eval()
 elif st.session_state.page_control == 6:
+    dialogue_eval()
+elif st.session_state.page_control == 7:
     finish()
