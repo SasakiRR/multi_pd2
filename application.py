@@ -715,7 +715,7 @@ def chat_system():
                     st.session_state.turn += 1
                     st.session_state.is_chat_input_disabled = False
                     st.session_state.input_message = "ここにメッセージを入力"
-                    time.sleep(len(assistant_msg) * 0.1 + 5)
+                    time.sleep(len(assistant_msg) * 0.1 + 2)
                     st.rerun()
 
 # 発話評価の関数
