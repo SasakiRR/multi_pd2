@@ -133,7 +133,7 @@ def practice():
     answer = ["" for i in range(10)]
     score = 0
     st.write(
-        "練習問題1"
+        "**練習問題1**"
         )
     with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
         st.write(
@@ -149,7 +149,7 @@ def practice():
         index=0)#1
     if int(answer[0][0]) < 3: score += 1
     st.write(
-        "練習問題2"
+        "**練習問題2**"
         )
     with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
         st.write(
@@ -165,7 +165,7 @@ def practice():
         index=0)#5
     if int(answer[1][0]) > 3: score += 1
     st.write(
-        "練習問題3"
+        "**練習問題3**"
         )
     with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
         st.write(
@@ -181,7 +181,7 @@ def practice():
         index=0)#1
     if int(answer[2][0]) < 3: score += 1
     st.write(
-        "練習問題4"
+        "**練習問題4**"
         )
     with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
         st.write(
@@ -197,7 +197,7 @@ def practice():
         index=0)#5
     if int(answer[3][0]) > 3: score += 1
     st.write(
-        "練習問題5"
+        "**練習問題5**"
         )
     with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
         st.write(
@@ -213,7 +213,7 @@ def practice():
         index=0)#5
     if int(answer[4][0]) > 3: score += 1
     st.write(
-        "練習問題6"
+        "**練習問題6**"
         )
     with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
         st.write(
@@ -229,7 +229,7 @@ def practice():
         index=0)#1
     if int(answer[5][0]) < 3: score += 1
     st.write(
-        "練習問題7"
+        "**練習問題7**"
         )
     with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
         st.write(
@@ -245,7 +245,7 @@ def practice():
         index=0)#5
     if int(answer[6][0]) > 3: score += 1
     st.write(
-        "練習問題8"
+        "**練習問題8**"
         )
     with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
         st.write(
@@ -261,7 +261,7 @@ def practice():
         index=0)#1
     if int(answer[7][0]) < 3: score += 1
     st.write(
-        "練習問題9"
+        "**練習問題9**"
         )
     with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
         st.write(
@@ -277,7 +277,7 @@ def practice():
         index=0)#1
     if int(answer[8][0]) < 3: score += 1
     st.write(
-        "練習問題10"
+        "**練習問題10**"
         )
     with st.chat_message(ASSISTANT_NAME, avatar=assistant_icon):
         st.write(
@@ -450,6 +450,7 @@ def answer():
     st.write(
         "**運動の効果に興味を持ち、自発的に「週末に散歩」と具体的なアクションを宣言しているため、説得されている**"
         )
+    st.markdown("## :red[全ての解答を確認したらボタンを押してください]")
     if st.button("確認完了"):
         st.session_state.page_control = 2
         st.rerun()
