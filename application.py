@@ -113,7 +113,7 @@ def response_chatgpt(prompt: str):
 def practice():
     st.title("説得度評価の練習")
     st.markdown(
-        "ピンクのアイコンの対話エージェントが説得されているか基準を明確化するため、評価の練習を行います。  \n次の基準を確認して、10個の質問に答えてください。"
+        "ピンクのアイコンの対話エージェントが説得されているかの基準を明確化するため、評価の練習を行います。  \n次の基準を確認して、10個の質問に答えてください。"
     )
     st.markdown(
         "**5：「完全に同意」エージェントが説得内容を受け入れた意思を表明している**"
@@ -650,7 +650,7 @@ def chat_system():
             st.session_state.prompt_chat_log = st.session_state.prompt_chat_log + assistant_msg + "\n" + "対話エージェント："
             st.chat_input("説得文を読んでください", disabled=True)
             st.session_state.is_chat_input_disabled = False
-            time.sleep(len(assistant_msg) * 0.1 + 5)
+            time.sleep(len(assistant_msg) * 0.1 + 2)
             st.rerun()
 
         # 対話エージェントの発話
