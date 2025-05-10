@@ -506,11 +506,11 @@ def pre_survey():
 # トピック表示の関数
 def to_pd():
     st.session_state.topic = ""
-    if int(st.session_state.meal1[0]) <= 3 and int(st.session_state.meal2[0]) <= 2:
+    if int(st.session_state.meal1[0]) <= 3 and int(st.session_state.meal2[0]) <= 3:
         st.session_state.topic = "規則的で栄養バランスの取れた食事"
     elif int(st.session_state.meal1[0]) <= 3:
         st.session_state.topic = "規則的な食事"
-    elif int(st.session_state.meal2[0]) <= 2:
+    elif int(st.session_state.meal2[0]) <= 3:
         st.session_state.topic = "栄養バランスの取れた食事"
     if st.session_state.topic == "":
         st.write("今回は説得対話を行えるトピックがありません。")
